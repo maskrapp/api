@@ -31,7 +31,7 @@ func SetMaskStatus(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 		values := map[string]string{
 			"enabled": strconv.FormatBool(b.Value),
 		}
-		result, _, err := postgrest.From("masks").Update(values, "", "").Eq("user_id", user.ID).Eq("email", b.Mask).Single().ExecuteString()
+		result, _, err := postgrest.From("masks").Update(values, "", "").Eq("user_id", user.ID).Eq("mask", b.Mask).Single().ExecuteString()
 		if len(result) == 0 || err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

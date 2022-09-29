@@ -16,7 +16,7 @@ type EmailVerificationEntry struct {
 }
 
 type MaskEntry struct {
-	Email     string `json:"email"`
+	Mask      string `json:"mask"`
 	Enabled   bool   `json:"enabled"`
 	ForwardTo int    `json:"forward_to"`
 	UserId    string `json:"user_id"`

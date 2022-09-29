@@ -23,7 +23,7 @@ func DeleteMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 			})
 		}
 		user := c.Locals("user").(*models.User)
-		result, _, err := postgrest.From("masks").Delete("", "").Eq("user_id", user.ID).Eq("email", mask).ExecuteString()
+		result, _, err := postgrest.From("masks").Delete("", "").Eq("user_id", user.ID).Eq("mask", mask).ExecuteString()
 		if err != nil || len(result) < 3 {
 			return c.Status(404).JSON(&models.APIResponse{
 				Success: false,

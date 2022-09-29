@@ -38,14 +38,13 @@ func AddMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 				Message: "Invalid masked email address",
 			})
 		}
-		result, _, _ := postgrest.From("available_domains").Select("*", "", false).Eq("domain", b.Domain).Single().ExecuteString()
-		if len(result) == 0 {
+		if b.Domain != "relay.maskr.app" {
 			return c.Status(404).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Domain not found",
 			})
 		}
-		result, _, err = postgrest.From("masks").Select("*", "", false).Eq("email", fullEmail).Single().ExecuteString()
+		result, _, err := postgrest.From("masks").Select("*", "", false).Eq("mask", fullEmail).Single().ExecuteString()
 		if err != nil && !strings.Contains(err.Error(), "(PGRST116)") {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
@@ -76,7 +75,7 @@ func AddMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 			UserId:    user.ID,
 			Enabled:   true,
 			ForwardTo: emailEntry.Id,
-			Email:     fullEmail,
+			Mask:      fullEmail,
 		}
 		_, _, err = postgrest.From("masks").Insert(maskEntry, false, "", "", "").Single().Execute()
 		if err != nil {
