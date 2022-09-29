@@ -14,3 +14,10 @@ type EmailVerificationEntry struct {
 	VerificationCode string `json:"verification_code"`
 	ExpiresAt        int64  `json:"expires_at"`
 }
+
+type MaskEntry struct {
+	Email     string `json:"email"`
+	Enabled   bool   `json:"enabled"`
+	ForwardTo int    `json:"forward_to"`
+	UserId    string `json:"user_id"`
+}
