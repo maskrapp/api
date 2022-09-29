@@ -23,10 +23,12 @@ func SendLink(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 				Message: "Something went wrong!",
 			})
 		}
-		email := body["email"].(string)
-		if email == "" {
+		val, ok := body["email"]
+		if !ok {
 			return c.Status(400).SendString("Invalid Body")
 		}
+
+		email := val.(string)
 		user := c.Locals("user").(*models.User)
 
 		emailModel := &models.EmailEntry{}

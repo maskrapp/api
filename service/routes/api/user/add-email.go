@@ -19,10 +19,12 @@ func AddEmail(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 		if err != nil {
 			return c.SendStatus(500)
 		}
-		email := body["email"].(string)
-		if email == "" {
+		val, ok := body["email"]
+		if !ok {
 			return c.Status(400).SendString("Invalid Body")
 		}
+		email := val.(string)
+
 		user := c.Locals("user").(*models.User)
 		//maybe just upsert this?
 		emailData, _, err := postgrest.From("emails").Select("*", "", false).Filter("user_id", "eq", user.ID).Filter("email", "eq", email).Execute()

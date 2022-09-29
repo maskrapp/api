@@ -15,13 +15,14 @@ func DeleteMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 		if err != nil {
 			return c.SendStatus(500)
 		}
-		mask := body["mask"].(string)
-		if mask == "" {
+		val, ok := body["mask"]
+		if !ok {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Invalid body",
 			})
 		}
+		mask := val.(string)
 		user := c.Locals("user").(*models.User)
 		result, _, err := postgrest.From("masks").Delete("", "").Eq("user_id", user.ID).Eq("mask", mask).ExecuteString()
 		if err != nil || len(result) < 3 {
