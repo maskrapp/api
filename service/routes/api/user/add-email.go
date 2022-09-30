@@ -45,8 +45,8 @@ func AddEmail(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 				Message: "That email is already registered to your account",
 			})
 		}
-		emailEntry := &models.EmailEntry{
-			UserId:     user.ID,
+		emailEntry := &models.Email{
+			UserID:     user.ID,
 			IsPrimary:  false,
 			IsVerified: false,
 			Email:      email,
@@ -58,7 +58,7 @@ func AddEmail(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 				Message: "Something went wrong!",
 			})
 		}
-		result := &models.EmailEntry{}
+		result := &models.Email{}
 		err = json.Unmarshal(data, result)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
@@ -67,8 +67,8 @@ func AddEmail(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 			})
 		}
 
-		emailVerification := &models.EmailVerificationEntry{
-			EmailId:          result.Id,
+		emailVerification := &models.EmailVerification{
+			EmailID:          result.Id,
 			VerificationCode: uuid.New().String(),
 			ExpiresAt:        time.Now().Add(30 * time.Minute).Unix(),
 		}
@@ -79,7 +79,7 @@ func AddEmail(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 				Message: "Something went wrong!",
 			})
 		}
-		fullName := user.UserMetadata["full_name"].(string)
+		fullName := "unknown"
 		err = mailer.SendVerifyMail(email, strings.Split(fullName, " ")[0], emailVerification.VerificationCode)
 		if err != nil {
 			return err

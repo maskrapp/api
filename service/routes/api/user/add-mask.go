@@ -57,7 +57,7 @@ func AddMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 				Message: "Mask already in use",
 			})
 		}
-		emailEntry := &models.EmailEntry{}
+		emailEntry := &models.Email{}
 		user := c.Locals("user").(*models.User)
 		_, err = postgrest.From("emails").Select("*", "", false).Eq("user_id", user.ID).Eq("email", b.Email).Single().ExecuteTo(emailEntry)
 		if err != nil {
@@ -71,8 +71,8 @@ func AddMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 				Message: "Email is not verified",
 			})
 		}
-		maskEntry := &models.MaskEntry{
-			UserId:    user.ID,
+		maskEntry := &models.Mask{
+			UserID:    user.ID,
 			Enabled:   true,
 			ForwardTo: emailEntry.Id,
 			Mask:      fullEmail,

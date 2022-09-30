@@ -25,7 +25,7 @@ func VerifyEmail(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 		if !ok {
 			return c.SendStatus(400)
 		}
-		verificationModel := &models.EmailVerificationEntry{}
+		verificationModel := &models.EmailVerification{}
 		_, err = postgrest.From("email_verifications").Select("*", "", false).Eq("verification_code", code).Single().ExecuteTo(verificationModel)
 		if err != nil {
 			if strings.Contains(err.Error(), "(PGRST116)") {
@@ -51,7 +51,7 @@ func VerifyEmail(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 		}
 		values := make(map[string]bool)
 		values["is_verified"] = true
-		_, _, err = postgrest.From("emails").Update(values, "", "").Eq("id", strconv.Itoa(verificationModel.EmailId)).Single().Execute()
+		_, _, err = postgrest.From("emails").Update(values, "", "").Eq("id", strconv.Itoa(verificationModel.EmailID)).Single().Execute()
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

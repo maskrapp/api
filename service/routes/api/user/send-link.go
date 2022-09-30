@@ -31,7 +31,7 @@ func SendLink(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 		email := val.(string)
 		user := c.Locals("user").(*models.User)
 
-		emailModel := &models.EmailEntry{}
+		emailModel := &models.Email{}
 		emailData, _, err := postgrest.From("emails").Select("*", "", false).Eq("user_id", user.ID).Eq("email", email).Single().Execute()
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
@@ -47,8 +47,8 @@ func SendLink(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 			})
 		}
 
-		verification := &models.EmailVerificationEntry{
-			EmailId:          emailModel.Id,
+		verification := &models.EmailVerification{
+			EmailID:          emailModel.Id,
 			VerificationCode: uuid.New().String(),
 			ExpiresAt:        time.Now().Add(30 * time.Minute).Unix(),
 		}
@@ -59,8 +59,7 @@ func SendLink(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 				Message: "Something went wrong!",
 			})
 		}
-		fullName := user.UserMetadata["full_name"].(string)
-		err = mailer.SendVerifyMail(email, strings.Split(fullName, " ")[0], verification.VerificationCode)
+		err = mailer.SendVerifyMail(email, strings.Split("unknown", " ")[0], verification.VerificationCode)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

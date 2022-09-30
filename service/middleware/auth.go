@@ -29,7 +29,7 @@ func AuthMiddleware(supabaseToken, baseURL string) func(*fiber.Ctx) error {
 		if err != nil {
 			return c.SendStatus(500)
 		}
-		if usr.Role != "authenticated" {
+		if usr.Role != 0 {
 			return c.SendStatus(401)
 		}
 		c.Locals("user", usr)
