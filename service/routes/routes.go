@@ -1,8 +1,6 @@
 package routes
 
 import (
-	"fmt"
-
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/maskrapp/backend/jwt"
@@ -17,11 +15,6 @@ import (
 )
 
 func Setup(app *fiber.App, mailer *mailer.Mailer, postgrest *postgrest.Client, supabaseKey, supabaseBase string, jwtHandler *jwt.JWTHandler, gorm *gorm.DB) {
-	jwt, err := jwtHandler.GenerateAccessToken("lol")
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println(jwt.ExpiresAt)
 	app.Use(cors.New())
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
@@ -42,7 +35,7 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, postgrest *postgrest.Client, s
 	apiUserGroup.Post("/masks", user.Masks(gorm))
 	apiUserGroup.Post("add-mask", user.AddMask(gorm))
 	apiUserGroup.Delete("delete-mask", user.DeleteMask(postgrest))
-	apiUserGroup.Put("set-mask-status", user.SetMaskStatus(postgrest))
+	apiUserGroup.Put("set-mask-status", user.SetMaskStatus(gorm))
 
 	apiUserGroup.Post("/send-link", user.SendLink(gorm, mailer))
 
