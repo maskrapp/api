@@ -35,7 +35,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 		}
 
 		provider := &models.Provider{
-			ProviderID:   data.Id,
+			ID:           data.Id,
 			ProviderName: "google",
 		}
 
@@ -52,7 +52,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 				return c.SendStatus(fiber.StatusInternalServerError)
 			}
 			err = db.Create(&models.Provider{
-				ProviderID:   data.Id,
+				ID:           data.Id,
 				ProviderName: "google",
 				UserID:       user.ID,
 			}).Error

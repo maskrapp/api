@@ -3,8 +3,8 @@ package models
 import "time"
 
 type Provider struct {
-	ProviderID   string `gorm:"primaryKey" json:"provider_id"`
-	ProviderName string `json:"provider_name"`
+	ID           string `json:"id" gorm:"primaryKey"`
+	ProviderName string `json:"provider_name" gorm:"not null"`
 	User         *User
 	UserID       string    `json:"user_id"`
 	CreatedAt    time.Time `json:"created_at"`
