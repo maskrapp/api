@@ -86,6 +86,19 @@ type Pair struct {
 	RTExpires    int64  `json:"rt_expires_at"`
 }
 
-func (j *JWTHandler) CreatePair() *Pair {
-	return nil
+func (j *JWTHandler) CreatePair(userID string) (*Pair, error) {
+	refreshToken, err := j.GenerateRefreshToken(userID)
+	if err != nil {
+		return nil, err
+	}
+	accessToken, err := j.GenerateAccessToken(userID)
+	if err != nil {
+		return nil, err
+	}
+	return &Pair{
+		RefreshToken: refreshToken.Token,
+		AccessToken:  accessToken.Token,
+		RTExpires:    refreshToken.ExpiresAt,
+		ATExpires:    accessToken.ExpiresAt,
+	}, nil
 }

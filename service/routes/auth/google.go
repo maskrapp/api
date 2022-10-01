@@ -28,19 +28,23 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 		if err != nil {
 			return c.SendStatus(fiber.ErrBadRequest.Code)
 		}
+
 		data, err := extractGoogleData(values.Code)
 		if err != nil {
 			return c.SendStatus(fiber.StatusInternalServerError)
 		}
+
 		provider := &models.Provider{
 			ProviderID:   data.Id,
 			ProviderName: "google",
 		}
+
+		var user *models.User
+
 		err = db.First(provider).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
 			return c.SendStatus(500)
 		}
-		var user *models.User
 		if err == gorm.ErrRecordNotFound {
 			usr, err := createGoogleUser(db, data)
 			user = usr
@@ -65,13 +69,15 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 			}
 			user = usr
 		}
-		fmt.Println("USER", user)
-		return nil
+		pair, err := handler.CreatePair(user.ID)
+		if err != nil {
+			return c.SendStatus(fiber.StatusInternalServerError)
+		}
+		return c.JSON(pair)
 	}
 }
 
 func createGoogleUser(db *gorm.DB, data *GoogleData) (*models.User, error) {
-	fmt.Println("creating user")
 	uuid := uuid.New()
 	user := &models.User{
 		ID:            uuid.String(),
