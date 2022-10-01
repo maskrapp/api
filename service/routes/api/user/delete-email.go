@@ -2,14 +2,14 @@ package user
 
 import (
 	"encoding/json"
-	"strings"
+	"fmt"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
-	"github.com/supabase/postgrest-go"
+	"gorm.io/gorm"
 )
 
-func DeleteEmail(postgrest *postgrest.Client) func(*fiber.Ctx) error {
+func DeleteEmail(db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]interface{})
 		err := json.Unmarshal(c.Body(), &body)
@@ -24,15 +24,11 @@ func DeleteEmail(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 			})
 		}
 		email := val.(string)
-		user := c.Locals("user").(*models.User)
-		data, _, err := postgrest.From("emails").Delete("", "").Eq("user_id", user.ID).Eq("email", email).Eq("is_primary", "false").ExecuteString()
-		if err != nil || len(data) < 3 {
-			if err != nil && strings.Contains(err.Error(), "(23503)") {
-				return c.Status(400).JSON(&models.APIResponse{
-					Success: false,
-					Message: "There are still masks connected to that email. Delete those first.",
-				})
-			}
+		userID := c.Locals("user_id").(string)
+
+		err = db.Delete(&models.Email{}, "email = ? AND user_id = ?", email, userID).Error
+		if err != nil {
+			fmt.Println(err)
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong!",

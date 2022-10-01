@@ -10,8 +10,8 @@ type Email struct {
 }
 
 type EmailVerification struct {
-	Id               int `json:"id,omitempty"`
-	Email            Email
+	Id               int    `json:"id,omitempty"`
+	Email            Email  `gorm:"constraint:onUpdate:CASCADE,onDelete:CASCADE;"`
 	EmailID          int    `json:"email_id"`
 	VerificationCode string `json:"verification_code"`
 	ExpiresAt        int64  `json:"expires_at"`
