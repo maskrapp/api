@@ -3,11 +3,10 @@ package user
 import (
 	"encoding/json"
 	"regexp"
-	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
-	"github.com/supabase/postgrest-go"
+	"gorm.io/gorm"
 )
 
 var (
@@ -20,7 +19,7 @@ type addMaskBody struct {
 	Domain string `json:"domain"`
 }
 
-func AddMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
+func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		b := &addMaskBody{}
 		err := json.Unmarshal(c.Body(), &b)
@@ -44,46 +43,60 @@ func AddMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 				Message: "Domain not found",
 			})
 		}
-		result, _, err := postgrest.From("masks").Select("*", "", false).Eq("mask", fullEmail).Single().ExecuteString()
-		if err != nil && !strings.Contains(err.Error(), "(PGRST116)") {
+
+		userID := c.Locals("user_id").(string)
+
+		var result struct {
+			Found bool
+		}
+		// db.Model(&User{}).Select("users.name, emails.email").Joins("left join emails on emails.user_id = users.id").Scan(&result{})
+
+		db.Raw("SELECT EXISTS(SELECT 1 FROM masks WHERE mask = ?) AS found",
+			fullEmail).Scan(&result)
+		if result.Found {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "That mask already exists",
+			})
+		}
+		emailRecord := &models.Email{}
+
+		err = db.Find(emailRecord, "email = ? AND user_id = ?", b.Email, userID).Error
+		if err != nil {
+			if err == gorm.ErrRecordNotFound {
+				return c.Status(400).JSON(&models.APIResponse{
+					Success: false,
+					Message: "You don't own that email",
+				})
+
+			}
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong",
 			})
 		}
-		if len(result) > 0 {
-			return c.Status(409).JSON(&models.APIResponse{
-				Success: false,
-				Message: "Mask already in use",
-			})
-		}
-		emailEntry := &models.Email{}
-		user := c.Locals("user").(*models.User)
-		_, err = postgrest.From("emails").Select("*", "", false).Eq("user_id", user.ID).Eq("email", b.Email).Single().ExecuteTo(emailEntry)
-		if err != nil {
-			return c.Status(400).JSON(&models.APIResponse{
-				Success: false,
-			})
-		}
-		if !emailEntry.IsVerified {
+
+		if !emailRecord.IsVerified {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Email is not verified",
 			})
 		}
-		maskEntry := &models.Mask{
-			UserID:    user.ID,
-			Enabled:   true,
-			ForwardTo: emailEntry.Id,
+		maskRecord := &models.Mask{
 			Mask:      fullEmail,
+			Enabled:   true,
+			ForwardTo: emailRecord.Id,
+			UserID:    userID,
 		}
-		_, _, err = postgrest.From("masks").Insert(maskEntry, false, "", "", "").Single().Execute()
+
+		err = db.Create(&maskRecord).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong",
 			})
 		}
+
 		return c.Status(200).JSON(&models.APIResponse{
 			Success: true,
 			Message: "Created mask",

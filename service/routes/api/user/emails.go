@@ -15,7 +15,6 @@ func Emails(db *gorm.DB) func(*fiber.Ctx) error {
 		fmt.Println(userId)
 		err := db.Where("user_id = ?", userId).Find(&emails).Error
 		if err != nil {
-			fmt.Println(err)
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong!",
