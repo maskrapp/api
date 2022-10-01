@@ -35,7 +35,7 @@ func New(emailToken, templateToken, postgrestURL, postgrestToken string, jwtSecr
 	if service.postgrest.ClientError != nil {
 		panic(service.postgrest.ClientError)
 	}
-	routes.Setup(service.fiber, service.mailer, service.postgrest, postgrestToken, postgrestURL, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*30, time.Hour*24), db)
+	routes.Setup(service.fiber, service.mailer, service.postgrest, postgrestToken, postgrestURL, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*5, time.Hour*24), db)
 	return service
 }
 
