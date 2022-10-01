@@ -43,7 +43,7 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, postgrest *postgrest.Client, s
 	apiUserGroup.Delete("delete-mask", user.DeleteMask(postgrest))
 	apiUserGroup.Put("set-mask-status", user.SetMaskStatus(postgrest))
 
-	apiUserGroup.Post("/send-link", user.SendLink(postgrest, mailer))
+	apiUserGroup.Post("/send-link", user.SendLink(gorm, mailer))
 
 	apiEmailGroup := apiGroup.Group("/email")
 	apiEmailGroup.Post("/verify", email.VerifyEmail(postgrest))

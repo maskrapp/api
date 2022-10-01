@@ -2,18 +2,16 @@ package user
 
 import (
 	"encoding/json"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/models"
-	"github.com/supabase/postgrest-go"
+	"gorm.io/gorm"
 )
 
-func SendLink(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ctx) error {
+func SendLink(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]interface{})
 		err := json.Unmarshal(c.Body(), &body)
@@ -29,43 +27,43 @@ func SendLink(postgrest *postgrest.Client, mailer *mailer.Mailer) func(*fiber.Ct
 		}
 
 		email := val.(string)
-		user := c.Locals("user").(*models.User)
+		userID := c.Locals("user_id").(string)
 
-		emailModel := &models.Email{}
-		emailData, _, err := postgrest.From("emails").Select("*", "", false).Eq("user_id", user.ID).Eq("email", email).Single().Execute()
+		emailRecord := &models.Email{}
+
+		err = db.Find(emailRecord, "email = ? AND user_id = ?", email, userID).Error
+
 		if err != nil {
-			return c.Status(500).JSON(&models.APIResponse{
+			return c.Status(404).JSON(&models.APIResponse{
 				Success: false,
-				Message: "Something went wrong!",
+				Message: "Could not find email",
 			})
 		}
-		err = json.Unmarshal(emailData, &emailModel)
-		if err != nil {
-			return c.Status(500).JSON(&models.APIResponse{
-				Success: false,
-				Message: "Something went wrong!",
-			})
-		}
-
 		verification := &models.EmailVerification{
-			EmailID:          emailModel.Id,
+			EmailID:          emailRecord.Id,
 			VerificationCode: uuid.New().String(),
 			ExpiresAt:        time.Now().Add(30 * time.Minute).Unix(),
 		}
-		_, _, err = postgrest.From("email_verifications").Insert(verification, true, "", "", "").Eq("email_id", strconv.Itoa(emailModel.Id)).Single().Execute()
+		if db.Model(&verification).Where("email_id = ?", userID).Updates(&verification).RowsAffected == 0 {
+			err = db.Create(&verification).Error
+		}
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong!",
 			})
 		}
-		err = mailer.SendVerifyMail(email, strings.Split("unknown", " ")[0], verification.VerificationCode)
+		var name = "unknown"
+		err = mailer.SendVerifyMail(email, name, verification.VerificationCode)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong!",
 			})
 		}
-		return nil
+		return c.JSON(&models.APIResponse{
+			Success: true,
+			Message: "A verification code has been sent to your email",
+		})
 	}
 }
