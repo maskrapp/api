@@ -62,7 +62,7 @@ func (j *JWTHandler) GenerateRefreshToken(id string) (JWTResponse, error) {
 	return JWTResponse{Token: t, ExpiresAt: claims.ExpiresAt}, nil
 }
 
-func (j *JWTHandler) Parse(tokenString string, isRefresh bool) (*UserClaims, error) {
+func (j *JWTHandler) Validate(tokenString string, isRefresh bool) (*UserClaims, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &UserClaims{}, func(t *jwt.Token) (interface{}, error) {
 		return []byte(j.secret), nil
 	})
@@ -80,10 +80,8 @@ func (j *JWTHandler) Parse(tokenString string, isRefresh bool) (*UserClaims, err
 }
 
 type Pair struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	ATExpires    int64  `json:"at_expires_at"`
-	RTExpires    int64  `json:"rt_expires_at"`
+	AccessToken  JWTResponse `json:"access_token"`
+	RefreshToken JWTResponse `json:"refresh_token"`
 }
 
 func (j *JWTHandler) CreatePair(userID string) (*Pair, error) {
@@ -96,9 +94,7 @@ func (j *JWTHandler) CreatePair(userID string) (*Pair, error) {
 		return nil, err
 	}
 	return &Pair{
-		RefreshToken: refreshToken.Token,
-		AccessToken:  accessToken.Token,
-		RTExpires:    refreshToken.ExpiresAt,
-		ATExpires:    accessToken.ExpiresAt,
+		RefreshToken: refreshToken,
+		AccessToken:  accessToken,
 	}, nil
 }
