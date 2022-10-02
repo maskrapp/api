@@ -40,7 +40,7 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, postgrest *postgrest.Client, s
 	apiUserGroup.Post("/send-link", user.SendLink(gorm, mailer))
 
 	apiEmailGroup := apiGroup.Group("/email")
-	apiEmailGroup.Post("/verify", email.VerifyEmail(postgrest))
+	apiEmailGroup.Post("/verify", email.VerifyEmail(gorm))
 
 	apiAuthGroup := apiGroup.Group("/auth")
 	apiAuthGroup.Post("/refresh", apiauth.RefreshToken(jwtHandler))
