@@ -6,7 +6,8 @@ require (
 	github.com/gofiber/fiber/v2 v2.38.1
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
-	github.com/supabase/postgrest-go v0.0.7
+	gorm.io/driver/postgres v1.3.10
+	gorm.io/gorm v1.23.10
 )
 
 require (
@@ -27,13 +28,10 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
-	gorm.io/driver/postgres v1.3.10 // indirect
-	gorm.io/gorm v1.23.10 // indirect
 )
 
 require (
 	github.com/andybalholm/brotli v1.0.4 // indirect
-	github.com/davecgh/go-spew v1.1.1
 	github.com/golang-jwt/jwt v3.2.2+incompatible
 	github.com/klauspost/compress v1.15.0 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect

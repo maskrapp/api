@@ -10,11 +10,10 @@ import (
 	"github.com/maskrapp/backend/service/routes/api/email"
 	"github.com/maskrapp/backend/service/routes/api/user"
 	"github.com/maskrapp/backend/service/routes/auth"
-	"github.com/supabase/postgrest-go"
 	"gorm.io/gorm"
 )
 
-func Setup(app *fiber.App, mailer *mailer.Mailer, postgrest *postgrest.Client, supabaseKey, supabaseBase string, jwtHandler *jwt.JWTHandler, gorm *gorm.DB) {
+func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB) {
 	app.Use(cors.New())
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
