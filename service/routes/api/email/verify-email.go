@@ -2,16 +2,15 @@ package email
 
 import (
 	"encoding/json"
-	"strconv"
-	"strings"
+	"fmt"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
-	"github.com/supabase/postgrest-go"
+	"gorm.io/gorm"
 )
 
-func VerifyEmail(postgrest *postgrest.Client) func(*fiber.Ctx) error {
+func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]interface{})
 		err := json.Unmarshal(c.Body(), &body)
@@ -21,20 +20,18 @@ func VerifyEmail(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		code, ok := body["code"].(string)
+		val, ok := body["code"]
 		if !ok {
 			return c.SendStatus(400)
 		}
-		verificationModel := &models.EmailVerificationEntry{}
-		_, err = postgrest.From("email_verifications").Select("*", "", false).Eq("verification_code", code).Single().ExecuteTo(verificationModel)
+		code := val.(string)
+		verificationModel := &models.EmailVerification{}
+		err = db.Find(verificationModel, "verification_code = ?", code).Error
 		if err != nil {
-			if strings.Contains(err.Error(), "(PGRST116)") {
-				return c.Status(404).JSON(&models.APIResponse{
-					Success: false,
-					Message: "Incorrect code",
-				})
-			}
-			return c.SendStatus(500)
+			return c.Status(404).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Incorrect code",
+			})
 		}
 		if time.Now().Unix() > verificationModel.ExpiresAt {
 			return c.Status(400).JSON(&models.APIResponse{
@@ -42,22 +39,26 @@ func VerifyEmail(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 				Message: "Code has expired",
 			})
 		}
-		_, _, err = postgrest.From("email_verifications").Delete("", "").Eq("id", strconv.Itoa(verificationModel.Id)).Single().Execute()
+
+		err = db.Delete(&models.EmailVerification{}, "id", verificationModel.Id).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong!",
 			})
 		}
-		values := make(map[string]bool)
+		values := make(map[string]interface{})
 		values["is_verified"] = true
-		_, _, err = postgrest.From("emails").Update(values, "", "").Eq("id", strconv.Itoa(verificationModel.EmailId)).Single().Execute()
+		err = db.Model(&models.Email{}).Where("id = ?", verificationModel.EmailID).Updates(values).Error
 		if err != nil {
+			fmt.Println(err)
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong",
 			})
 		}
-		return nil
+		return c.JSON(&models.APIResponse{
+			Success: true,
+		})
 	}
 }

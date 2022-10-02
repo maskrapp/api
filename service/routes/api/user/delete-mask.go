@@ -5,10 +5,10 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
-	"github.com/supabase/postgrest-go"
+	"gorm.io/gorm"
 )
 
-func DeleteMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
+func DeleteMask(db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]interface{})
 		err := json.Unmarshal(c.Body(), &body)
@@ -19,21 +19,22 @@ func DeleteMask(postgrest *postgrest.Client) func(*fiber.Ctx) error {
 		if !ok {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
-				Message: "Invalid body",
+				Message: "Invalid Body",
 			})
 		}
 		mask := val.(string)
-		user := c.Locals("user").(*models.User)
-		result, _, err := postgrest.From("masks").Delete("", "").Eq("user_id", user.ID).Eq("mask", mask).ExecuteString()
-		if err != nil || len(result) < 3 {
-			return c.Status(404).JSON(&models.APIResponse{
+		userID := c.Locals("user_id").(string)
+
+		err = db.Delete(&models.Mask{}, "mask = ? AND user_id = ?", mask, userID).Error
+		if err != nil {
+			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
-				Message: "That mask does not exist",
+				Message: "Something went wrong!",
 			})
 		}
-		return c.Status(200).JSON(&models.APIResponse{
+		return c.JSON(&models.APIResponse{
 			Success: true,
-			Message: "Succesfully deleted mask",
+			Message: "Mask deleted",
 		})
 	}
 }
