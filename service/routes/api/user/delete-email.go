@@ -2,7 +2,7 @@ package user
 
 import (
 	"encoding/json"
-	"fmt"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
@@ -28,7 +28,12 @@ func DeleteEmail(db *gorm.DB) func(*fiber.Ctx) error {
 
 		err = db.Delete(&models.Email{}, "email = ? AND user_id = ?", email, userID).Error
 		if err != nil {
-			fmt.Println(err)
+			if strings.Contains(err.Error(), "(SQLSTATE 23503)") {
+				return c.Status(400).JSON(&models.APIResponse{
+					Success: false,
+					Message: "There are still masks connected to that email. Delete those first.",
+				})
+			}
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong!",
