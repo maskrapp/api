@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
+	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -25,7 +26,7 @@ func DeleteMask(db *gorm.DB) func(*fiber.Ctx) error {
 		mask := val.(string)
 		userID := c.Locals("user_id").(string)
 
-		err = db.Delete(&models.Mask{}, "mask = ? AND user_id = ?", mask, userID).Error
+		err = db.Delete(&dbmodels.Mask{}, "mask = ? AND user_id = ?", mask, userID).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

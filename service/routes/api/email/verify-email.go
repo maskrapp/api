@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
+	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -24,7 +25,7 @@ func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
 			return c.SendStatus(400)
 		}
 		code := val.(string)
-		verificationModel := &models.EmailVerification{}
+		verificationModel := &dbmodels.EmailVerification{}
 		err = db.Find(verificationModel, "verification_code = ?", code).Error
 		if err != nil {
 			return c.Status(404).JSON(&models.APIResponse{
@@ -39,7 +40,7 @@ func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
 			})
 		}
 
-		err = db.Delete(&models.EmailVerification{}, "id", verificationModel.Id).Error
+		err = db.Delete(&dbmodels.EmailVerification{}, "id", verificationModel.Id).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
@@ -48,7 +49,7 @@ func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
 		}
 		values := make(map[string]interface{})
 		values["is_verified"] = true
-		err = db.Model(&models.Email{}).Where("id = ?", verificationModel.EmailID).Updates(values).Error
+		err = db.Model(&dbmodels.Email{}).Where("id = ?", verificationModel.EmailID).Updates(values).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

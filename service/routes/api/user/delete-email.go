@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
+	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -26,7 +27,7 @@ func DeleteEmail(db *gorm.DB) func(*fiber.Ctx) error {
 		email := val.(string)
 		userID := c.Locals("user_id").(string)
 
-		err = db.Delete(&models.Email{}, "email = ? AND user_id = ?", email, userID).Error
+		err = db.Delete(&dbmodels.Email{}, "email = ? AND user_id = ?", email, userID).Error
 		if err != nil {
 			if strings.Contains(err.Error(), "(SQLSTATE 23503)") {
 				return c.Status(400).JSON(&models.APIResponse{

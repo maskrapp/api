@@ -6,6 +6,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/jwt"
 	"github.com/maskrapp/backend/models"
+	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -28,7 +29,7 @@ func RefreshToken(jwtHandler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) erro
 				Message: "Invalid token",
 			})
 		}
-		user := &models.User{}
+		user := &dbmodels.User{}
 		err = db.First(user, "id = ?", claims.UserId).Error
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {

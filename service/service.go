@@ -7,8 +7,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/jwt"
 	"github.com/maskrapp/backend/mailer"
-	"github.com/maskrapp/backend/models"
 	"github.com/maskrapp/backend/service/routes"
+	"github.com/maskrapp/common/models"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )

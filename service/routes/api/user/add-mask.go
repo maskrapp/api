@@ -6,6 +6,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
+	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -49,7 +50,6 @@ func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 		var result struct {
 			Found bool
 		}
-		// db.Model(&User{}).Select("users.name, emails.email").Joins("left join emails on emails.user_id = users.id").Scan(&result{})
 
 		db.Raw("SELECT EXISTS(SELECT 1 FROM masks WHERE mask = ?) AS found",
 			fullEmail).Scan(&result)
@@ -59,7 +59,7 @@ func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 				Message: "That mask already exists",
 			})
 		}
-		emailRecord := &models.Email{}
+		emailRecord := &dbmodels.Email{}
 
 		err = db.Find(emailRecord, "email = ? AND user_id = ?", b.Email, userID).Error
 		if err != nil {
@@ -82,7 +82,7 @@ func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 				Message: "Email is not verified",
 			})
 		}
-		maskRecord := &models.Mask{
+		maskRecord := &dbmodels.Mask{
 			Mask:      fullEmail,
 			Enabled:   true,
 			ForwardTo: emailRecord.Id,

@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/models"
+	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -41,7 +42,7 @@ func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 			})
 		}
 
-		emailRecord := &models.Email{
+		emailRecord := &dbmodels.Email{
 			UserID:     userId,
 			Email:      email,
 			IsVerified: false,
@@ -56,7 +57,7 @@ func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		emailVerification := &models.EmailVerification{
+		emailVerification := &dbmodels.EmailVerification{
 			EmailID:          emailRecord.Id,
 			VerificationCode: uuid.New().String(),
 			ExpiresAt:        time.Now().Add(30 * time.Minute).Unix(),

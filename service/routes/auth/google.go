@@ -11,7 +11,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/maskrapp/backend/jwt"
-	"github.com/maskrapp/backend/models"
+	dbmodels "github.com/maskrapp/common/models"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"gorm.io/gorm"
@@ -34,12 +34,12 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 			return c.SendStatus(fiber.StatusInternalServerError)
 		}
 
-		provider := &models.Provider{
+		provider := &dbmodels.Provider{
 			ID:           data.Id,
 			ProviderName: "google",
 		}
 
-		var user *models.User
+		var user *dbmodels.User
 
 		err = db.First(provider).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
@@ -51,7 +51,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 			if err != nil {
 				return c.SendStatus(fiber.StatusInternalServerError)
 			}
-			err = db.Create(&models.Provider{
+			err = db.Create(&dbmodels.Provider{
 				ID:           data.Id,
 				ProviderName: "google",
 				UserID:       user.ID,
@@ -60,7 +60,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 				return c.SendStatus(500)
 			}
 		} else {
-			usr := &models.User{
+			usr := &dbmodels.User{
 				ID: provider.UserID,
 			}
 			err := db.First(usr).Error
@@ -77,9 +77,9 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 	}
 }
 
-func createGoogleUser(db *gorm.DB, data *GoogleData) (*models.User, error) {
+func createGoogleUser(db *gorm.DB, data *GoogleData) (*dbmodels.User, error) {
 	uuid := uuid.New()
-	user := &models.User{
+	user := &dbmodels.User{
 		ID:            uuid.String(),
 		Role:          0,
 		Password:      nil,

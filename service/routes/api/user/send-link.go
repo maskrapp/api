@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/models"
+	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -29,7 +30,7 @@ func SendLink(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 		email := val.(string)
 		userID := c.Locals("user_id").(string)
 
-		emailRecord := &models.Email{}
+		emailRecord := &dbmodels.Email{}
 
 		err = db.Find(emailRecord, "email = ? AND user_id = ?", email, userID).Error
 
@@ -39,7 +40,7 @@ func SendLink(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 				Message: "Could not find email",
 			})
 		}
-		verification := &models.EmailVerification{
+		verification := &dbmodels.EmailVerification{
 			EmailID:          emailRecord.Id,
 			VerificationCode: uuid.New().String(),
 			ExpiresAt:        time.Now().Add(30 * time.Minute).Unix(),
