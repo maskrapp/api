@@ -13,8 +13,9 @@ type JWTResponse struct {
 }
 
 type UserClaims struct {
-	UserId string `json:"id"`
-	Type   string `json:"type"`
+	UserId  string `json:"id"`
+	Type    string `json:"type"`
+	Version int    `json:"version"`
 	jwt.StandardClaims
 }
 
@@ -28,11 +29,12 @@ type JWTHandler struct {
 	rtExpires time.Duration
 }
 
-func (j *JWTHandler) GenerateAccessToken(id string) (JWTResponse, error) {
+func (j *JWTHandler) GenerateAccessToken(id string, version int) (JWTResponse, error) {
 	expiresAt := time.Now().Add(j.atExpires).Unix()
 	claims := UserClaims{
-		UserId: id,
-		Type:   "access",
+		UserId:  id,
+		Version: version,
+		Type:    "access",
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 		},
@@ -44,11 +46,12 @@ func (j *JWTHandler) GenerateAccessToken(id string) (JWTResponse, error) {
 	}
 	return JWTResponse{Token: t, ExpiresAt: claims.ExpiresAt}, nil
 }
-func (j *JWTHandler) GenerateRefreshToken(id string) (JWTResponse, error) {
+func (j *JWTHandler) GenerateRefreshToken(id string, version int) (JWTResponse, error) {
 	expiresAt := time.Now().Add(j.rtExpires).Unix()
 	claims := UserClaims{
-		UserId: id,
-		Type:   "refresh",
+		UserId:  id,
+		Version: version,
+		Type:    "refresh",
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 			Subject:   id,
@@ -84,12 +87,12 @@ type Pair struct {
 	RefreshToken JWTResponse `json:"refresh_token"`
 }
 
-func (j *JWTHandler) CreatePair(userID string) (*Pair, error) {
-	refreshToken, err := j.GenerateRefreshToken(userID)
+func (j *JWTHandler) CreatePair(userID string, version int) (*Pair, error) {
+	refreshToken, err := j.GenerateRefreshToken(userID, version)
 	if err != nil {
 		return nil, err
 	}
-	accessToken, err := j.GenerateAccessToken(userID)
+	accessToken, err := j.GenerateAccessToken(userID, version)
 	if err != nil {
 		return nil, err
 	}

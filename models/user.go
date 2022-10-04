@@ -17,5 +17,6 @@ type User struct {
 	Password      *string `json:"-"`
 	Email         string  `json:"email" gorm:"not null"`
 	EmailVerified bool    `json:"email_verified" gorm:"not null"`
+	TokenVersion  int     `json:"token_version" gorm:"default:1"`
 	Updated       int64   `gorm:"autoUpdateTime:milli"` // Use unix milli seconds as updating time
 }

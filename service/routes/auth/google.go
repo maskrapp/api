@@ -69,7 +69,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 			}
 			user = usr
 		}
-		pair, err := handler.CreatePair(user.ID)
+		pair, err := handler.CreatePair(user.ID, user.TokenVersion)
 		if err != nil {
 			return c.SendStatus(fiber.StatusInternalServerError)
 		}

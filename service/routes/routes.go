@@ -42,6 +42,6 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, go
 	apiEmailGroup.Post("/verify", email.VerifyEmail(gorm))
 
 	apiAuthGroup := apiGroup.Group("/auth")
-	apiAuthGroup.Post("/refresh", apiauth.RefreshToken(jwtHandler))
+	apiAuthGroup.Post("/refresh", apiauth.RefreshToken(jwtHandler, gorm))
 
 }
