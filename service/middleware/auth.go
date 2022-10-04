@@ -1,7 +1,6 @@
 package middleware
 
 import (
-	"fmt"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -19,7 +18,6 @@ func AuthMiddleware(jwtHandler *jwt.JWTHandler) func(*fiber.Ctx) error {
 		accessToken := split[1]
 		claims, err := jwtHandler.Validate(accessToken, false)
 		if err != nil {
-			fmt.Println("err", err)
 			if strings.Contains(err.Error(), "token mismatch") {
 				return c.Status(400).JSON(&models.APIResponse{
 					Success: false,
