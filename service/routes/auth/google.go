@@ -59,6 +59,15 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 			if err != nil {
 				return c.SendStatus(500)
 			}
+			err = db.Create(&dbmodels.Email{
+				UserID:     user.ID,
+				IsPrimary:  true,
+				IsVerified: true,
+				Email:      data.Email,
+			}).Error
+			if err != nil {
+				return c.SendStatus(fiber.StatusInternalServerError)
+			}
 		} else {
 			usr := &dbmodels.User{
 				ID: provider.UserID,
