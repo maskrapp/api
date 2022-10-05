@@ -46,7 +46,7 @@ func (m *Mailer) createJSON(email, name, code string) ([]byte, error) {
 
 	link := "localhost:3000/verify/" + code
 	if m.production {
-		link = "maskr.app/verify/" + code
+		link = "alpha.maskr.app/verify/" + code
 	}
 	reqMap["merge_info"] = map[string]string{
 		"name": name,
