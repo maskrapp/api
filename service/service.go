@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"os"
 	"time"
 
@@ -19,8 +20,9 @@ type BackendService struct {
 	db     *gorm.DB
 }
 
-func New(emailToken, templateToken, jwtSecret string, production bool, postgresURI string) *BackendService {
-	db, err := gorm.Open(postgres.Open(postgresURI), &gorm.Config{})
+func New(emailToken, templateToken, jwtSecret string, dbUser, dbPassword, dbHost, dbDatabase string, production bool) *BackendService {
+	uri := fmt.Sprintf("postgres://%v:%v@%v/%v", dbUser, dbPassword, dbHost, dbDatabase)
+	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{})
 	if err != nil {
 		panic(err)
 	}
