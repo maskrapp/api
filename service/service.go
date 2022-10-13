@@ -10,6 +10,7 @@ import (
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/service/routes"
 	"github.com/maskrapp/common/models"
+	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -18,6 +19,7 @@ type BackendService struct {
 	fiber  *fiber.App
 	mailer *mailer.Mailer
 	db     *gorm.DB
+	logger *logrus.Logger
 }
 
 func New(emailToken, templateToken, jwtSecret string, dbUser, dbPassword, dbHost, dbDatabase string, production bool) *BackendService {
@@ -30,9 +32,10 @@ func New(emailToken, templateToken, jwtSecret string, dbUser, dbPassword, dbHost
 		mailer: mailer.New(emailToken, templateToken, production),
 		fiber:  fiber.New(),
 		db:     db,
+		logger: logrus.New(),
 	}
 
-	routes.Setup(service.fiber, service.mailer, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*5, time.Hour*24), db)
+	routes.Setup(service.fiber, service.mailer, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*5, time.Hour*24), db, service.logger)
 	return service
 }
 

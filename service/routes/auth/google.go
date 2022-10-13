@@ -8,48 +8,66 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/maskrapp/backend/jwt"
+	"github.com/maskrapp/backend/models"
 	dbmodels "github.com/maskrapp/common/models"
+	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"gorm.io/gorm"
 )
 
-func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error {
+func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-
 		type body struct {
 			Code string `json:"code"`
 		}
+
 		values := &body{}
 		err := c.BodyParser(&values)
 		if err != nil {
-			return c.SendStatus(fiber.ErrBadRequest.Code)
+			return c.Status(fiber.ErrBadRequest.Code).JSON(
+				&models.APIResponse{
+					Success: false,
+					Message: "Invalid body",
+				},
+			)
 		}
-
 		data, err := extractGoogleData(values.Code)
+		logger.Error(err)
 		if err != nil {
-			return c.SendStatus(fiber.StatusInternalServerError)
+			return c.Status(fiber.StatusInternalServerError).JSON(
+				&models.APIResponse{
+					Success: false,
+					Message: "Google token exchange error",
+				},
+			)
 		}
-
 		provider := &dbmodels.Provider{
 			ID:           data.Id,
 			ProviderName: "google",
 		}
-
 		var user *dbmodels.User
-
 		err = db.First(provider).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
-			return c.SendStatus(500)
+			logger.Error("Database error:", err)
+			return c.Status(500).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Something went wrong!",
+			})
 		}
 		if err == gorm.ErrRecordNotFound {
 			usr, err := createGoogleUser(db, data)
 			user = usr
 			if err != nil {
-				return c.SendStatus(fiber.StatusInternalServerError)
+				logger.Error("Database error:", err)
+				return c.Status(500).JSON(&models.APIResponse{
+					Success: false,
+					Message: "Something went wrong!",
+				})
 			}
 			err = db.Create(&dbmodels.Provider{
 				ID:           data.Id,
@@ -57,7 +75,11 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 				UserID:       user.ID,
 			}).Error
 			if err != nil {
-				return c.SendStatus(500)
+				logger.Error("Database error:", err)
+				return c.Status(500).JSON(&models.APIResponse{
+					Success: false,
+					Message: "Something went wrong!",
+				})
 			}
 			err = db.Create(&dbmodels.Email{
 				UserID:     user.ID,
@@ -66,7 +88,11 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 				Email:      data.Email,
 			}).Error
 			if err != nil {
-				return c.SendStatus(fiber.StatusInternalServerError)
+				logger.Error("Database error:", err)
+				return c.Status(500).JSON(&models.APIResponse{
+					Success: false,
+					Message: "Something went wrong!",
+				})
 			}
 		} else {
 			usr := &dbmodels.User{
@@ -74,13 +100,21 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 			}
 			err := db.First(usr).Error
 			if err != nil {
-				return c.SendStatus(fiber.StatusInternalServerError)
+				logger.Error("Database error:", err)
+				return c.Status(500).JSON(&models.APIResponse{
+					Success: false,
+					Message: "Something went wrong!",
+				})
 			}
 			user = usr
 		}
 		pair, err := handler.CreatePair(user.ID, user.TokenVersion)
+		logger.Error("JWT error:", err)
 		if err != nil {
-			return c.SendStatus(fiber.StatusInternalServerError)
+			return c.Status(500).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Something went wrong!",
+			})
 		}
 		return c.JSON(pair)
 	}
@@ -100,7 +134,6 @@ func createGoogleUser(db *gorm.DB, data *GoogleData) (*dbmodels.User, error) {
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("user", user)
 	return user, nil
 }
 
@@ -126,6 +159,7 @@ type GoogleData struct {
 }
 
 func extractGoogleData(code string) (*GoogleData, error) {
+	spew.Dump(googleOauthConfig)
 	token, err := googleOauthConfig.Exchange(context.Background(), code)
 	if err != nil {
 		return nil, fmt.Errorf("code exchange wrong: %s", err.Error())

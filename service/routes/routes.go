@@ -10,17 +10,18 @@ import (
 	"github.com/maskrapp/backend/service/routes/api/email"
 	"github.com/maskrapp/backend/service/routes/api/user"
 	"github.com/maskrapp/backend/service/routes/auth"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB) {
+func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB, logger *logrus.Logger) {
 	app.Use(cors.New())
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
 	})
 
 	authGroup := app.Group("/auth")
-	authGroup.Post("/google", auth.GoogleHandler(jwtHandler, gorm))
+	authGroup.Post("/google", auth.GoogleHandler(jwtHandler, gorm, logger))
 
 	apiGroup := app.Group("/api")
 
