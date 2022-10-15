@@ -19,7 +19,9 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, go
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
 	})
-
+	app.Get("/headers", func(c *fiber.Ctx) error {
+		return c.JSON(c.GetReqHeaders())
+	})
 	authGroup := app.Group("/auth")
 	authGroup.Post("/google", auth.GoogleHandler(jwtHandler, gorm, logger))
 
