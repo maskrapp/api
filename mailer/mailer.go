@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 )
@@ -66,10 +67,11 @@ func (m *Mailer) SendVerifyMail(email, name, code string) error {
 	if err != nil {
 		return err
 	}
+	authHeader := fmt.Sprintf("Zoho-enczapikey %v", m.token)
 	request.Header = map[string][]string{
 		"Accept":        {"application/json"},
 		"Content-Type":  {"application/json"},
-		"Authorization": {m.token},
+		"Authorization": {authHeader},
 	}
 	resp, err := client.Do(request)
 	var res map[string]interface{}

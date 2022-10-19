@@ -43,7 +43,6 @@ func (b *BackendService) Start() {
 	b.db.AutoMigrate(&models.User{}, &models.Email{}, &models.EmailVerification{}, &models.Mask{}, &models.Provider{})
 	b.fiber.Listen(":80")
 }
-
 func (b *BackendService) Shutdown() {
 	b.fiber.Shutdown()
 }

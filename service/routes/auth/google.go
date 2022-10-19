@@ -37,8 +37,8 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 			)
 		}
 		data, err := extractGoogleData(values.Code)
-		logger.Error(err)
 		if err != nil {
+			logger.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(
 				&models.APIResponse{
 					Success: false,
@@ -109,7 +109,6 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 			user = usr
 		}
 		pair, err := handler.CreatePair(user.ID, user.TokenVersion)
-		logger.Error("JWT error:", err)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
