@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strconv"
 )
 
 type Mailer struct {
@@ -76,8 +75,10 @@ func (m *Mailer) SendVerifyMail(email, name, code string) error {
 	resp, err := client.Do(request)
 	var res map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&res)
+
 	if resp.StatusCode != 201 {
-		return errors.New("Expected status code 201, got " + strconv.Itoa(resp.StatusCode))
+		errorMessage := fmt.Sprintf("expected status code 201, got: %v with response body: %v", resp.StatusCode, res)
+		return errors.New(errorMessage)
 	}
 	return err
 }
