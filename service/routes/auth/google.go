@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
 	"github.com/maskrapp/backend/jwt"
@@ -158,7 +157,6 @@ type GoogleData struct {
 }
 
 func extractGoogleData(code string) (*GoogleData, error) {
-	spew.Dump(googleOauthConfig)
 	token, err := googleOauthConfig.Exchange(context.Background(), code)
 	if err != nil {
 		return nil, fmt.Errorf("code exchange wrong: %s", err.Error())
