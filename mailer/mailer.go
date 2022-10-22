@@ -22,7 +22,7 @@ func New(token string, templateKey string, production bool) *Mailer {
 	}
 }
 
-func (m *Mailer) createJSON(email, name, code string) ([]byte, error) {
+func (m *Mailer) createJSON(email, code string) ([]byte, error) {
 	// https://www.zoho.com/zeptomail/help/api/email-templates.html
 
 	reqMap := make(map[string]interface{})
@@ -44,28 +44,25 @@ func (m *Mailer) createJSON(email, name, code string) ([]byte, error) {
 
 	reqMap["to"] = recipients
 
-	link := "localhost:3000/verify/" + code
-	if m.production {
-		link = "alpha.maskr.app/verify/" + code
-	}
 	reqMap["merge_info"] = map[string]string{
-		"name": name,
-		"link": link,
+		"code": code,
 	}
 	return json.Marshal(reqMap)
 }
 
-func (m *Mailer) SendVerifyMail(email, name, code string) error {
+func (m *Mailer) SendVerifyMail(email, code string) error {
 
-	data, err := m.createJSON(email, name, code)
+	data, err := m.createJSON(email, code)
 	if err != nil {
 		return err
 	}
 	client := http.DefaultClient
 	request, err := http.NewRequest("POST", "https://api.zeptomail.eu/v1.1/email/template", bytes.NewBuffer(data))
+
 	if err != nil {
 		return err
 	}
+
 	authHeader := fmt.Sprintf("Zoho-enczapikey %v", m.token)
 	request.Header = map[string][]string{
 		"Accept":        {"application/json"},

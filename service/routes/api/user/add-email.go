@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/models"
 	dbmodels "github.com/maskrapp/common/models"
@@ -59,7 +58,7 @@ func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 		}
 		emailVerification := &dbmodels.EmailVerification{
 			EmailID:          emailRecord.Id,
-			VerificationCode: uuid.New().String(),
+			VerificationCode: generateCode(),
 			ExpiresAt:        time.Now().Add(30 * time.Minute).Unix(),
 		}
 		err = db.Create(emailVerification).Error
@@ -70,9 +69,7 @@ func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		//TODO: include name in jwt so we can use it here
-		var name = "unknown"
-		err = mailer.SendVerifyMail(email, name, emailVerification.VerificationCode)
+		err = mailer.SendVerifyMail(email, emailVerification.VerificationCode)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

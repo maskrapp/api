@@ -2,17 +2,18 @@ package user
 
 import (
 	"encoding/json"
+	"math/rand"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/google/uuid"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/models"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
-func SendLink(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
+func RequestCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]interface{})
 		err := json.Unmarshal(c.Body(), &body)
@@ -31,8 +32,7 @@ func SendLink(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 		userID := c.Locals("user_id").(string)
 
 		emailRecord := &dbmodels.Email{}
-
-		err = db.Find(emailRecord, "email = ? AND user_id = ?", email, userID).Error
+		err = db.Find(emailRecord, "email = ? AND user_id = ? AND is_verified = false", email, userID).Error
 
 		if err != nil {
 			return c.Status(404).JSON(&models.APIResponse{
@@ -42,10 +42,10 @@ func SendLink(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 		}
 		verification := &dbmodels.EmailVerification{
 			EmailID:          emailRecord.Id,
-			VerificationCode: uuid.New().String(),
-			ExpiresAt:        time.Now().Add(30 * time.Minute).Unix(),
+			VerificationCode: generateCode(),
+			ExpiresAt:        time.Now().Add(5 * time.Minute).Unix(),
 		}
-		if db.Model(&verification).Where("email_id = ?", userID).Updates(&verification).RowsAffected == 0 {
+		if db.Model(&verification).Where("email_id = ?", emailRecord.Id).Updates(&verification).RowsAffected == 0 {
 			err = db.Create(&verification).Error
 		}
 		if err != nil {
@@ -54,8 +54,7 @@ func SendLink(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		var name = "unknown"
-		err = mailer.SendVerifyMail(email, name, verification.VerificationCode)
+		err = mailer.SendVerifyMail(email, verification.VerificationCode)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
@@ -67,4 +66,16 @@ func SendLink(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 			Message: "A verification code has been sent to your email",
 		})
 	}
+}
+
+var set = "1234567890"
+
+func generateCode() string {
+	sb := strings.Builder{}
+	sb.Grow(5)
+	for i := 0; i < 5; i++ {
+		sb.WriteByte(set[rand.Intn(len(set))])
+	}
+	return sb.String()
+
 }

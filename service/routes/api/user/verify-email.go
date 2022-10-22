@@ -1,4 +1,4 @@
-package email
+package user
 
 import (
 	"encoding/json"
@@ -20,23 +20,44 @@ func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		val, ok := body["code"]
-		if !ok {
-			return c.SendStatus(400)
+		codeVal, ok := body["code"]
+		emailVal, ok2 := body["email"]
+
+		if !ok || !ok2 {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Invalid body",
+			})
 		}
-		code := val.(string)
-		verificationModel := &dbmodels.EmailVerification{}
-		err = db.Find(verificationModel, "verification_code = ?", code).Error
+
+		code := codeVal.(string)
+		email := emailVal.(string)
+
+		userID := c.Locals("user_id").(string)
+		emailModel := &dbmodels.Email{}
+		err = db.Find(emailModel, "user_id = ? AND email = ? AND is_verified = false", userID, email).Error
 		if err != nil {
 			return c.Status(404).JSON(&models.APIResponse{
 				Success: false,
-				Message: "Incorrect code",
+				Message: "Invalid Email",
 			})
 		}
+
+		verificationModel := &dbmodels.EmailVerification{}
+
+		err = db.Find(verificationModel, "email_id = ? AND verification_code = ?", emailModel.Id, code).Error
+
+		if err != nil {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Invalid code",
+			})
+		}
+
 		if time.Now().Unix() > verificationModel.ExpiresAt {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
-				Message: "Code has expired",
+				Message: "Invalid code",
 			})
 		}
 

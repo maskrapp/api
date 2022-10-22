@@ -7,7 +7,6 @@ import (
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/service/middleware"
 	apiauth "github.com/maskrapp/backend/service/routes/api/auth"
-	"github.com/maskrapp/backend/service/routes/api/email"
 	"github.com/maskrapp/backend/service/routes/api/user"
 	"github.com/maskrapp/backend/service/routes/auth"
 	"github.com/sirupsen/logrus"
@@ -39,10 +38,8 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, go
 	apiUserGroup.Delete("delete-mask", user.DeleteMask(gorm))
 	apiUserGroup.Put("set-mask-status", user.SetMaskStatus(gorm))
 
-	apiUserGroup.Post("/send-link", user.SendLink(gorm, mailer))
-
-	apiEmailGroup := apiGroup.Group("/email")
-	apiEmailGroup.Post("/verify", email.VerifyEmail(gorm))
+	apiUserGroup.Post("/request-code", user.RequestCode(gorm, mailer))
+	apiUserGroup.Post("/verify-email", user.VerifyEmail(gorm))
 
 	apiAuthGroup := apiGroup.Group("/auth")
 	apiAuthGroup.Post("/refresh", apiauth.RefreshToken(jwtHandler, gorm))
