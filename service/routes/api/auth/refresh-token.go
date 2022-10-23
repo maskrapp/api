@@ -10,16 +10,17 @@ import (
 	"gorm.io/gorm"
 )
 
+//TODO: harden this
 func RefreshToken(jwtHandler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]interface{})
 		err := json.Unmarshal(c.Body(), &body)
 		if err != nil {
-			return c.SendStatus(500)
+			return c.SendStatus(401)
 		}
 		val, ok := body["refresh_token"]
 		if !ok {
-			return c.Status(400).SendString("Invalid Body")
+			return c.Status(401).SendString("Invalid Body")
 		}
 		refreshToken := val.(string)
 		claims, err := jwtHandler.Validate(refreshToken, true)
@@ -33,12 +34,12 @@ func RefreshToken(jwtHandler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) erro
 		err = db.First(user, "id = ?", claims.UserId).Error
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
-				return c.Status(404).JSON(&models.APIResponse{
+				return c.Status(401).JSON(&models.APIResponse{
 					Success: false,
 					Message: "The user that is associated with your token no longer exists",
 				})
 			}
-			return c.Status(500).JSON(&models.APIResponse{
+			return c.Status(401).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong",
 			})
