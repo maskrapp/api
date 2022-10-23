@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/maskrapp/backend/jwt"
 	"github.com/maskrapp/backend/mailer"
+	"github.com/maskrapp/backend/ratelimit"
 	"github.com/maskrapp/backend/service/middleware"
 	apiauth "github.com/maskrapp/backend/service/routes/api/auth"
 	"github.com/maskrapp/backend/service/routes/api/user"
@@ -13,7 +14,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB, logger *logrus.Logger) {
+func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB, logger *logrus.Logger, ratelimiter *ratelimit.RateLimiter) {
 	app.Use(cors.New())
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
@@ -28,6 +29,7 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, go
 
 	apiUserGroup := apiGroup.Group("/user")
 	apiUserGroup.Use(middleware.AuthMiddleware(jwtHandler))
+	apiUserGroup.Use(middleware.UserRateLimit(ratelimiter))
 
 	apiUserGroup.Post("/emails", user.Emails(gorm))
 	apiUserGroup.Post("/add-email", user.AddEmail(gorm, mailer))
