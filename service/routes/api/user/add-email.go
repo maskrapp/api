@@ -2,6 +2,8 @@ package user
 
 import (
 	"encoding/json"
+	"regexp"
+	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
@@ -10,6 +12,8 @@ import (
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
+
+var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
@@ -20,10 +24,25 @@ func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 		}
 		val, ok := body["email"]
 		if !ok {
-			return c.Status(400).SendString("Invalid Body")
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Invalid body",
+			})
 		}
 		email := val.(string)
-		// TODO: validate email with regex
+		if !emailRegex.MatchString(email) {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Invalid email",
+			})
+		}
+
+		if strings.Split(email, "@")[1] == "relay.maskr.app" {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Invalid email",
+			})
+		}
 
 		userId := c.Locals("user_id").(string)
 
