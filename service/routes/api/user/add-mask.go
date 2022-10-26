@@ -5,6 +5,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
+	"github.com/maskrapp/backend/utils"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
@@ -26,7 +27,7 @@ func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 			return c.Status(400).SendString("Invalid Body")
 		}
 		fullEmail := b.Name + "@" + b.Domain
-		if !emailRegex.MatchString(fullEmail) {
+		if !utils.EmailRegex.MatchString(fullEmail) {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Invalid masked email address",

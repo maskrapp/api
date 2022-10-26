@@ -2,18 +2,16 @@ package user
 
 import (
 	"encoding/json"
-	"regexp"
 	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/models"
+	"github.com/maskrapp/backend/utils"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
-
-var emailRegex = regexp.MustCompile("^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$")
 
 func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
@@ -30,7 +28,7 @@ func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 			})
 		}
 		email := val.(string)
-		if !emailRegex.MatchString(email) {
+		if !utils.EmailRegex.MatchString(email) {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Invalid email",
