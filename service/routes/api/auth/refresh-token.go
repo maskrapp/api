@@ -51,7 +51,7 @@ func RefreshToken(jwtHandler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) erro
 				Message: "Token version mismatch",
 			})
 		}
-		jwt, err := jwtHandler.GenerateAccessToken(claims.UserId, tokenVersion)
+		jwt, err := jwtHandler.GenerateAccessToken(claims.UserId, tokenVersion, claims.EmailVerified)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

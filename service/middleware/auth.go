@@ -35,6 +35,12 @@ func AuthMiddleware(jwtHandler *jwt.JWTHandler) func(*fiber.Ctx) error {
 			})
 
 		}
+		if !claims.EmailVerified && c.Path() != "/api/user/verify-account-email" {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "This route requires a verified email",
+			})
+		}
 		c.Locals("user_id", claims.UserId)
 		return c.Next()
 	}

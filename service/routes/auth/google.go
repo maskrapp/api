@@ -107,7 +107,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 			}
 			user = usr
 		}
-		pair, err := handler.CreatePair(user.ID, user.TokenVersion)
+		pair, err := handler.CreatePair(user.ID, user.TokenVersion, true)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

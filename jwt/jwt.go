@@ -13,9 +13,10 @@ type JWTResponse struct {
 }
 
 type UserClaims struct {
-	UserId  string `json:"id"`
-	Type    string `json:"type"`
-	Version int    `json:"version"`
+	UserId        string `json:"id"`
+	Type          string `json:"type"`
+	Version       int    `json:"version"`
+	EmailVerified bool   `json:"email_verified"`
 	jwt.StandardClaims
 }
 
@@ -29,12 +30,13 @@ type JWTHandler struct {
 	rtExpires time.Duration
 }
 
-func (j *JWTHandler) GenerateAccessToken(id string, version int) (JWTResponse, error) {
+func (j *JWTHandler) GenerateAccessToken(id string, version int, emailVerified bool) (JWTResponse, error) {
 	expiresAt := time.Now().Add(j.atExpires).Unix()
 	claims := UserClaims{
-		UserId:  id,
-		Version: version,
-		Type:    "access",
+		UserId:        id,
+		Version:       version,
+		Type:          "access",
+		EmailVerified: emailVerified,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 		},
@@ -46,12 +48,13 @@ func (j *JWTHandler) GenerateAccessToken(id string, version int) (JWTResponse, e
 	}
 	return JWTResponse{Token: t, ExpiresAt: claims.ExpiresAt}, nil
 }
-func (j *JWTHandler) GenerateRefreshToken(id string, version int) (JWTResponse, error) {
+func (j *JWTHandler) GenerateRefreshToken(id string, version int, emailVerified bool) (JWTResponse, error) {
 	expiresAt := time.Now().Add(j.rtExpires).Unix()
 	claims := UserClaims{
-		UserId:  id,
-		Version: version,
-		Type:    "refresh",
+		UserId:        id,
+		Version:       version,
+		Type:          "refresh",
+		EmailVerified: emailVerified,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 			Subject:   id,
@@ -87,12 +90,12 @@ type Pair struct {
 	RefreshToken JWTResponse `json:"refresh_token"`
 }
 
-func (j *JWTHandler) CreatePair(userID string, version int) (*Pair, error) {
-	refreshToken, err := j.GenerateRefreshToken(userID, version)
+func (j *JWTHandler) CreatePair(userID string, version int, emailVerified bool) (*Pair, error) {
+	refreshToken, err := j.GenerateRefreshToken(userID, version, emailVerified)
 	if err != nil {
 		return nil, err
 	}
-	accessToken, err := j.GenerateAccessToken(userID, version)
+	accessToken, err := j.GenerateAccessToken(userID, version, emailVerified)
 	if err != nil {
 		return nil, err
 	}
