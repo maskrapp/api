@@ -278,6 +278,8 @@ github.com/maskrapp/common v0.0.0-20221027023019-b59cf4ef90b2 h1:oGVO9PNi/0PfREs
 github.com/maskrapp/common v0.0.0-20221027023019-b59cf4ef90b2/go.mod h1:0Sr+Geo8ZIzPJzr+sYsZXdALdAPjms2NnaT50l8C/WY=
 github.com/maskrapp/common v0.0.0-20221028201349-073973029136 h1:GnFbLk6W8Lvwv4Vrxa10y7bociEdLDULlbloDSYJgLs=
 github.com/maskrapp/common v0.0.0-20221028201349-073973029136/go.mod h1:0Sr+Geo8ZIzPJzr+sYsZXdALdAPjms2NnaT50l8C/WY=
+github.com/maskrapp/common v0.0.0-20221028232720-ce6e14a3e1e0 h1:XpdRy0kQ5wqWIc9NF8+j6nwh9b24tDmBSTORCV4nutM=
+github.com/maskrapp/common v0.0.0-20221028232720-ce6e14a3e1e0/go.mod h1:0Sr+Geo8ZIzPJzr+sYsZXdALdAPjms2NnaT50l8C/WY=
 github.com/mattn/go-colorable v0.1.1/go.mod h1:FuOcm+DKB9mbwrcAfNl7/TZVBZ6rcnceauSikq3lYCQ=
 github.com/mattn/go-colorable v0.1.6/go.mod h1:u6P/XSegPjTcexA+o6vUJrdnUu04hMope9wVRipJSqc=
 github.com/mattn/go-isatty v0.0.5/go.mod h1:Iq45c/XA43vh69/j3iqttzPXn0bhXyGjM0Hdxcsrc5s=
