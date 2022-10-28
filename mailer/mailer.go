@@ -79,3 +79,33 @@ func (m *Mailer) SendVerifyMail(email, code string) error {
 	}
 	return err
 }
+
+func (m *Mailer) SendUserVerificationMail(email, code string) error {
+
+	data, err := m.createJSON(email, code)
+	if err != nil {
+		return err
+	}
+	client := http.DefaultClient
+	request, err := http.NewRequest("POST", "https://api.zeptomail.eu/v1.1/email/template", bytes.NewBuffer(data))
+
+	if err != nil {
+		return err
+	}
+
+	authHeader := fmt.Sprintf("Zoho-enczapikey %v", m.token)
+	request.Header = map[string][]string{
+		"Accept":        {"application/json"},
+		"Content-Type":  {"application/json"},
+		"Authorization": {authHeader},
+	}
+	resp, err := client.Do(request)
+	var res map[string]interface{}
+	json.NewDecoder(resp.Body).Decode(&res)
+
+	if resp.StatusCode != 201 {
+		errorMessage := fmt.Sprintf("expected status code 201, got: %v with response body: %v", resp.StatusCode, res)
+		return errors.New(errorMessage)
+	}
+	return err
+}

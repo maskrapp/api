@@ -75,7 +75,7 @@ func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 		}
 		emailVerification := &dbmodels.EmailVerification{
 			EmailID:          emailRecord.Id,
-			VerificationCode: generateCode(),
+			VerificationCode: utils.GenerateCode(5),
 			ExpiresAt:        time.Now().Add(30 * time.Minute).Unix(),
 		}
 		err = db.Create(emailVerification).Error

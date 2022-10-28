@@ -13,10 +13,9 @@ type JWTResponse struct {
 }
 
 type UserClaims struct {
-	UserId        string `json:"id"`
-	Type          string `json:"type"`
-	Version       int    `json:"version"`
-	EmailVerified bool   `json:"email_verified"`
+	UserId  string `json:"id"`
+	Type    string `json:"type"`
+	Version int    `json:"version"`
 	jwt.StandardClaims
 }
 
@@ -30,13 +29,12 @@ type JWTHandler struct {
 	rtExpires time.Duration
 }
 
-func (j *JWTHandler) GenerateAccessToken(id string, version int, emailVerified bool) (JWTResponse, error) {
+func (j *JWTHandler) GenerateAccessToken(id string, version int) (JWTResponse, error) {
 	expiresAt := time.Now().Add(j.atExpires).Unix()
 	claims := UserClaims{
-		UserId:        id,
-		Version:       version,
-		Type:          "access",
-		EmailVerified: emailVerified,
+		UserId:  id,
+		Version: version,
+		Type:    "access",
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 		},
@@ -48,13 +46,12 @@ func (j *JWTHandler) GenerateAccessToken(id string, version int, emailVerified b
 	}
 	return JWTResponse{Token: t, ExpiresAt: claims.ExpiresAt}, nil
 }
-func (j *JWTHandler) GenerateRefreshToken(id string, version int, emailVerified bool) (JWTResponse, error) {
+func (j *JWTHandler) GenerateRefreshToken(id string, version int) (JWTResponse, error) {
 	expiresAt := time.Now().Add(j.rtExpires).Unix()
 	claims := UserClaims{
-		UserId:        id,
-		Version:       version,
-		Type:          "refresh",
-		EmailVerified: emailVerified,
+		UserId:  id,
+		Version: version,
+		Type:    "refresh",
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 			Subject:   id,
@@ -76,7 +73,6 @@ func (j *JWTHandler) Validate(tokenString string, isRefresh bool) (*UserClaims, 
 		return &UserClaims{}, err
 	}
 	if claims, ok := token.Claims.(*UserClaims); ok && token.Valid {
-		token.Claims.Valid()
 		if isRefresh && claims.Type != "refresh" || !isRefresh && claims.Type != "access" {
 			return nil, errors.New("token type mismatch")
 		}
@@ -90,12 +86,12 @@ type Pair struct {
 	RefreshToken JWTResponse `json:"refresh_token"`
 }
 
-func (j *JWTHandler) CreatePair(userID string, version int, emailVerified bool) (*Pair, error) {
-	refreshToken, err := j.GenerateRefreshToken(userID, version, emailVerified)
+func (j *JWTHandler) CreatePair(userID string, version int) (*Pair, error) {
+	refreshToken, err := j.GenerateRefreshToken(userID, version)
 	if err != nil {
 		return nil, err
 	}
-	accessToken, err := j.GenerateAccessToken(userID, version, emailVerified)
+	accessToken, err := j.GenerateAccessToken(userID, version)
 	if err != nil {
 		return nil, err
 	}

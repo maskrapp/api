@@ -107,7 +107,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 			}
 			user = usr
 		}
-		pair, err := handler.CreatePair(user.ID, user.TokenVersion, true)
+		pair, err := handler.CreatePair(user.ID, user.TokenVersion)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
@@ -121,12 +121,11 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 func createGoogleUser(db *gorm.DB, data *GoogleData) (*dbmodels.User, error) {
 	uuid := uuid.New()
 	user := &dbmodels.User{
-		ID:            uuid.String(),
-		Role:          0,
-		Password:      nil,
-		Name:          data.GivenName,
-		Email:         data.Email,
-		EmailVerified: data.VerifiedEmail,
+		ID:       uuid.String(),
+		Role:     0,
+		Password: nil,
+		Name:     data.GivenName,
+		Email:    data.Email,
 	}
 	err := db.Create(user).Error
 	if err != nil {

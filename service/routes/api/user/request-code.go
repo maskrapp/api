@@ -2,13 +2,12 @@ package user
 
 import (
 	"encoding/json"
-	"math/rand"
-	"strings"
 	"time"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/models"
+	"github.com/maskrapp/backend/utils"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
@@ -42,7 +41,7 @@ func RequestCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 		}
 		verification := &dbmodels.EmailVerification{
 			EmailID:          emailRecord.Id,
-			VerificationCode: generateCode(),
+			VerificationCode: utils.GenerateCode(5),
 			ExpiresAt:        time.Now().Add(5 * time.Minute).Unix(),
 		}
 		if db.Model(&verification).Where("email_id = ?", emailRecord.Id).Updates(&verification).RowsAffected == 0 {
@@ -66,16 +65,4 @@ func RequestCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 			Message: "A verification code has been sent to your email",
 		})
 	}
-}
-
-var set = "1234567890"
-
-func generateCode() string {
-	sb := strings.Builder{}
-	sb.Grow(5)
-	for i := 0; i < 5; i++ {
-		sb.WriteByte(set[rand.Intn(len(set))])
-	}
-	return sb.String()
-
 }
