@@ -51,7 +51,7 @@ func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, logger *logrus.L
 		if len(data) > 0 {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
-				Message: "Email already in use",
+				Message: "Email is already in use",
 			})
 		}
 

@@ -24,8 +24,9 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, go
 	})
 	authGroup := app.Group("/auth")
 	authGroup.Post("/google", auth.GoogleHandler(jwtHandler, gorm, logger))
-	authGroup.Post("create-account-code", auth.CreateAccountCode(gorm, jwtHandler, logger, mailer))
 
+	authGroup.Post("create-account-code", auth.CreateAccountCode(gorm, jwtHandler, logger, mailer))
+	authGroup.Post("verify-account-code", auth.VerifyAccountCode(gorm))
 	authGroup.Post("resend-account-code", auth.ResendAccountCode(gorm, mailer))
 	authGroup.Post("create-account", auth.CreateAccount(gorm, jwtHandler))
 	authGroup.Post("email-login", auth.EmailLogin(gorm, jwtHandler))
