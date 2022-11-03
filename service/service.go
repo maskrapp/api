@@ -65,7 +65,10 @@ func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDat
 }
 
 func (b *BackendService) Start() {
-	b.db.AutoMigrate(&models.User{}, &models.Email{}, &models.EmailVerification{}, &models.Mask{}, &models.Provider{}, &models.AccountVerification{})
+	err := b.db.AutoMigrate(&models.User{}, &models.Email{}, &models.EmailVerification{}, &models.Mask{}, &models.Provider{}, &models.AccountVerification{})
+	if err != nil {
+		panic(err)
+	}
 	b.fiber.Listen(":80")
 }
 func (b *BackendService) Shutdown() {
