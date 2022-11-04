@@ -7,17 +7,19 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/models"
+	"github.com/maskrapp/backend/recaptcha"
 	"github.com/maskrapp/backend/utils"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
 type resendAccountCodeBody struct {
-	Email string
+	Email        string `json:"email"`
+	CaptchaToken string `json:"captcha_token"`
 }
 
 //TODO: rate limit this
-func ResendAccountCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
+func ResendAccountCode(db *gorm.DB, mailer *mailer.Mailer, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 
 		body := &resendAccountCodeBody{}
@@ -29,7 +31,7 @@ func ResendAccountCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) erro
 				Message: "Invalid body",
 			})
 		}
-		if body.Email == "" {
+		if body.Email == "" || body.CaptchaToken == "" {
 			fmt.Println(body.Email)
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
@@ -40,6 +42,11 @@ func ResendAccountCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) erro
 		if !utils.EmailRegex.MatchString(body.Email) {
 			return c.Status(400).JSON(&models.APIResponse{Success: false,
 				Message: "Invalid email"})
+		}
+		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "resend_account_code") {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Captcha failed. Try again."})
 		}
 		verificationRecord := &dbmodels.AccountVerification{}
 		err = db.First(verificationRecord, "email = ?", body.Email).Error

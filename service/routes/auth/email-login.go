@@ -4,18 +4,20 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/jwt"
 	"github.com/maskrapp/backend/models"
+	"github.com/maskrapp/backend/recaptcha"
 	"github.com/maskrapp/backend/utils"
 	dbModels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
 type emailLoginBody struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email        string `json:"email"`
+	Password     string `json:"password"`
+	CaptchaToken string `json:"captcha_token"`
 }
 
 //TODO: harden this
-func EmailLogin(db *gorm.DB, jwtHandler *jwt.JWTHandler) func(*fiber.Ctx) error {
+func EmailLogin(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 
 		body := &emailLoginBody{}
@@ -27,11 +29,16 @@ func EmailLogin(db *gorm.DB, jwtHandler *jwt.JWTHandler) func(*fiber.Ctx) error 
 			})
 		}
 
-		if body.Email == "" || body.Password == "" {
+		if body.Email == "" || body.Password == "" || body.CaptchaToken == "" {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Invalid body",
 			})
+		}
+		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "email_login") {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Captcha failed. Try again."})
 		}
 
 		user := &dbModels.User{}

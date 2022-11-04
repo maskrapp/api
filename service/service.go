@@ -11,6 +11,7 @@ import (
 	"github.com/maskrapp/backend/jwt"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/ratelimit"
+	"github.com/maskrapp/backend/recaptcha"
 	"github.com/maskrapp/backend/service/routes"
 	"github.com/maskrapp/backend/utils"
 	"github.com/maskrapp/common/models"
@@ -28,7 +29,7 @@ type BackendService struct {
 	ratelimiter *ratelimit.RateLimiter
 }
 
-func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDatabase, redisHost, redisPassword string, production bool, globalRPI int, customRoutes map[string]int) *BackendService {
+func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDatabase, redisHost, redisPassword, captchaSecret string, production bool, globalRPI int, customRoutes map[string]int) *BackendService {
 
 	redisClient := redis.NewClient(&redis.Options{
 		Addr:     redisHost,
@@ -63,7 +64,7 @@ func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDat
 		ratelimiter: rateLimiter,
 	}
 
-	routes.Setup(service.fiber, service.mailer, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*5, time.Hour*24), db, service.logger, rateLimiter)
+	routes.Setup(service.fiber, service.mailer, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*5, time.Hour*24), db, service.logger, rateLimiter, recaptcha.New(httpClient, logger, captchaSecret))
 	return service
 }
 

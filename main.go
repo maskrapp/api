@@ -35,6 +35,6 @@ func main() {
 			}
 		}
 	}
-	service := service.New(os.Getenv("MAIL_TOKEN"), os.Getenv("TEMPLATE_KEY"), os.Getenv("SECRET_KEY"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_DATABASE"), os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PASSWORD"), os.Getenv("PRODUCTION") == "true", globalRPI, routeRPMS)
+	service := service.New(os.Getenv("MAIL_TOKEN"), os.Getenv("TEMPLATE_KEY"), os.Getenv("SECRET_KEY"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_DATABASE"), os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PASSWORD"), os.Getenv("CAPTCHA_SECRET"), os.Getenv("PRODUCTION") == "true", globalRPI, routeRPMS)
 	service.Start()
 }

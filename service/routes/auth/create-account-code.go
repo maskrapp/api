@@ -7,6 +7,7 @@ import (
 	"github.com/maskrapp/backend/jwt"
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/models"
+	"github.com/maskrapp/backend/recaptcha"
 	"github.com/maskrapp/backend/utils"
 	dbmodels "github.com/maskrapp/common/models"
 	"github.com/sirupsen/logrus"
@@ -14,10 +15,11 @@ import (
 )
 
 type createAccountCodeBody struct {
-	Email string `json:"email"`
+	Email        string `json:"email"`
+	CaptchaToken string `json:"captcha_token"`
 }
 
-func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, logger *logrus.Logger, mailer *mailer.Mailer) func(*fiber.Ctx) error {
+func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, logger *logrus.Logger, mailer *mailer.Mailer, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := &createAccountCodeBody{}
 		err := c.BodyParser(body)
@@ -27,7 +29,7 @@ func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, logger *logrus.L
 				Message: "Invalid body",
 			})
 		}
-		if body.Email == "" {
+		if body.Email == "" || body.CaptchaToken == "" {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Invalid body",
@@ -37,6 +39,12 @@ func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, logger *logrus.L
 		if !utils.EmailRegex.MatchString(body.Email) {
 			return c.Status(400).JSON(&models.APIResponse{Success: false,
 				Message: "Invalid email"})
+		}
+
+		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "create_account_code") {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Captcha failed. Try again."})
 		}
 
 		data := make(map[string]interface{}, 0)

@@ -5,22 +5,23 @@ import (
 	"github.com/google/uuid"
 	"github.com/maskrapp/backend/jwt"
 	"github.com/maskrapp/backend/models"
+	"github.com/maskrapp/backend/recaptcha"
 	"github.com/maskrapp/backend/utils"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
 type createAccountBody struct {
-	Email    string
-	Code     string
-	Password string
+	Email        string `json:"email"`
+	Code         string `json:"code"`
+	Password     string `json:"password"`
+	CaptchaToken string `json:"captcha_token"`
 }
 
-func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler) func(*fiber.Ctx) error {
+func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 
 		body := &createAccountBody{}
-
 		err := c.BodyParser(body)
 
 		if err != nil {
@@ -29,10 +30,16 @@ func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler) func(*fiber.Ctx) err
 				Message: "Invalid body",
 			})
 		}
-		if body.Email == "" || body.Code == "" || body.Password == "" {
+		if body.Email == "" || body.Code == "" || body.Password == "" || body.CaptchaToken == "" {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Invalid body",
+			})
+		}
+		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "create_account") {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Captcha failed. Try again.",
 			})
 		}
 
