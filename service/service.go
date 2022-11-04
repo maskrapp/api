@@ -12,6 +12,7 @@ import (
 	"github.com/maskrapp/backend/mailer"
 	"github.com/maskrapp/backend/ratelimit"
 	"github.com/maskrapp/backend/service/routes"
+	"github.com/maskrapp/backend/utils"
 	"github.com/maskrapp/common/models"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -42,7 +43,6 @@ func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDat
 	}
 
 	logger := logrus.New()
-
 	rateLimiter := ratelimit.New(redisClient, logger, globalRPI, customRoutes)
 
 	uri := fmt.Sprintf("postgres://%v:%v@%v/%v", dbUser, dbPassword, dbHost, dbDatabase)
@@ -51,8 +51,11 @@ func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDat
 		panic(err)
 
 	}
+
+	httpClient := utils.CreateCustomHttpClient()
+
 	service := &BackendService{
-		mailer:      mailer.New(emailToken, templateToken, production),
+		mailer:      mailer.New(httpClient, emailToken, templateToken, production),
 		fiber:       fiber.New(),
 		db:          db,
 		logger:      logger,

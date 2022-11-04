@@ -9,13 +9,15 @@ import (
 )
 
 type Mailer struct {
+	httpClient  *http.Client
 	token       string
 	templateKey string
 	production  bool
 }
 
-func New(token string, templateKey string, production bool) *Mailer {
+func New(httpClient *http.Client, token string, templateKey string, production bool) *Mailer {
 	return &Mailer{
+		httpClient:  httpClient,
 		token:       token,
 		templateKey: templateKey,
 		production:  production,
@@ -56,7 +58,6 @@ func (m *Mailer) SendVerifyMail(email, code string) error {
 	if err != nil {
 		return err
 	}
-	client := http.DefaultClient
 	request, err := http.NewRequest("POST", "https://api.zeptomail.eu/v1.1/email/template", bytes.NewBuffer(data))
 
 	if err != nil {
@@ -69,7 +70,11 @@ func (m *Mailer) SendVerifyMail(email, code string) error {
 		"Content-Type":  {"application/json"},
 		"Authorization": {authHeader},
 	}
-	resp, err := client.Do(request)
+	resp, err := m.httpClient.Do(request)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
 	var res map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&res)
 
@@ -86,7 +91,6 @@ func (m *Mailer) SendUserVerificationMail(email, code string) error {
 	if err != nil {
 		return err
 	}
-	client := http.DefaultClient
 	request, err := http.NewRequest("POST", "https://api.zeptomail.eu/v1.1/email/template", bytes.NewBuffer(data))
 
 	if err != nil {
@@ -99,7 +103,13 @@ func (m *Mailer) SendUserVerificationMail(email, code string) error {
 		"Content-Type":  {"application/json"},
 		"Authorization": {authHeader},
 	}
-	resp, err := client.Do(request)
+	resp, err := m.httpClient.Do(request)
+	if err != nil {
+		return err
+	}
+
+	defer resp.Body.Close()
+
 	var res map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&res)
 
