@@ -36,6 +36,14 @@ func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha
 				Message: "Invalid body",
 			})
 		}
+
+		if !utils.IsValidPassword(body.Password) {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Password does not meet requirements",
+			})
+		}
+
 		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "create_account") {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
@@ -67,7 +75,6 @@ func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha
 				Message: "Something went wrong",
 			})
 		}
-
 		hashedPassword, err := utils.HashPassword(body.Password)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
