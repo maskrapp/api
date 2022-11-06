@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
@@ -26,7 +27,7 @@ func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 		if b.Email == "" || b.Domain == "" || b.Name == "" {
 			return c.Status(400).SendString("Invalid Body")
 		}
-		fullEmail := b.Name + "@" + b.Domain
+		fullEmail := strings.ToLower(b.Name + "@" + b.Domain)
 		if !utils.EmailRegex.MatchString(fullEmail) {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
