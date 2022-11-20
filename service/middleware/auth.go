@@ -15,6 +15,12 @@ func AuthMiddleware(jwtHandler *jwt.JWTHandler) func(*fiber.Ctx) error {
 			return c.SendStatus(401)
 		}
 		split := strings.Split(auth, " ")
+		if len(split) != 2 {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Invalid authorization header",
+			})
+		}
 		accessToken := split[1]
 		claims, err := jwtHandler.Validate(accessToken, false)
 		if err != nil {
