@@ -33,6 +33,7 @@ func SetMaskStatus(db *gorm.DB) func(*fiber.Ctx) error {
 		}
 
 		err = db.Model(&dbmodels.Mask{}).Where("mask = ? and user_id = ?", b.Mask, userID).Updates(values).Error
+
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
 				return c.Status(400).JSON(&models.APIResponse{

@@ -10,12 +10,11 @@ import (
 
 type Recaptcha struct {
 	httpClient *http.Client
-	logger     *logrus.Logger
 	secret     string
 }
 
-func New(httpClient *http.Client, logger *logrus.Logger, secret string) *Recaptcha {
-	return &Recaptcha{httpClient, logger, secret}
+func New(httpClient *http.Client, secret string) *Recaptcha {
+	return &Recaptcha{httpClient, secret}
 }
 
 type responseBody struct {
@@ -33,7 +32,7 @@ func (r *Recaptcha) ValidateCaptchaToken(token, action string) bool {
 
 	request, err := http.NewRequest(http.MethodPost, url, nil)
 	if err != nil {
-		r.logger.Error("http request initialization failed: ", err)
+		logrus.Error("http request initialization failed: ", err)
 		return false
 	}
 	request.Header = map[string][]string{
@@ -43,7 +42,7 @@ func (r *Recaptcha) ValidateCaptchaToken(token, action string) bool {
 
 	response, err := r.httpClient.Do(request)
 	if err != nil {
-		r.logger.Error("http request failed: ", err)
+		logrus.Error("http request failed: ", err)
 		return false
 	}
 	defer response.Body.Close()
@@ -51,12 +50,12 @@ func (r *Recaptcha) ValidateCaptchaToken(token, action string) bool {
 	resBody := &responseBody{}
 	err = json.NewDecoder(response.Body).Decode(resBody)
 	if err != nil {
-		r.logger.Error("JSON decoder error: ", err)
+		logrus.Error("JSON decoder error: ", err)
 		return false
 	}
 
 	if len(resBody.ErrorCodes) > 0 {
-		r.logger.Error("captcha error codes:", resBody.ErrorCodes)
+		logrus.Error("captcha error codes:", resBody.ErrorCodes)
 	}
 
 	if !resBody.Success || resBody.Action != action {

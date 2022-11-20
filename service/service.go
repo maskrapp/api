@@ -15,7 +15,6 @@ import (
 	"github.com/maskrapp/backend/service/routes"
 	"github.com/maskrapp/backend/utils"
 	"github.com/maskrapp/common/models"
-	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
@@ -24,7 +23,6 @@ type BackendService struct {
 	fiber       *fiber.App
 	mailer      *mailer.Mailer
 	db          *gorm.DB
-	logger      *logrus.Logger
 	redis       *redis.Client
 	ratelimiter *ratelimit.RateLimiter
 }
@@ -43,8 +41,7 @@ func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDat
 		panic(err)
 	}
 
-	logger := logrus.New()
-	rateLimiter := ratelimit.New(redisClient, logger, globalRPI, customRoutes)
+	rateLimiter := ratelimit.New(redisClient, globalRPI, customRoutes)
 
 	uri := fmt.Sprintf("postgres://%v:%v@%v/%v", dbUser, dbPassword, dbHost, dbDatabase)
 	db, err := gorm.Open(postgres.Open(uri), &gorm.Config{})
@@ -59,12 +56,11 @@ func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDat
 		mailer:      mailer.New(httpClient, emailToken, templateToken, production),
 		fiber:       fiber.New(),
 		db:          db,
-		logger:      logger,
 		redis:       redisClient,
 		ratelimiter: rateLimiter,
 	}
 
-	routes.Setup(service.fiber, service.mailer, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*5, time.Hour*24), db, service.logger, rateLimiter, recaptcha.New(httpClient, logger, captchaSecret))
+	routes.Setup(service.fiber, service.mailer, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*5, time.Hour*24), db, rateLimiter, recaptcha.New(httpClient, captchaSecret))
 	return service
 }
 

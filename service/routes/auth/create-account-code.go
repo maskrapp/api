@@ -10,7 +10,6 @@ import (
 	"github.com/maskrapp/backend/recaptcha"
 	"github.com/maskrapp/backend/utils"
 	dbmodels "github.com/maskrapp/common/models"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -19,7 +18,7 @@ type createAccountCodeBody struct {
 	CaptchaToken string `json:"captcha_token"`
 }
 
-func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, logger *logrus.Logger, mailer *mailer.Mailer, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
+func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, mailer *mailer.Mailer, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := &createAccountCodeBody{}
 		err := c.BodyParser(body)

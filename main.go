@@ -7,6 +7,7 @@ import (
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/maskrapp/backend/service"
 	"github.com/maskrapp/backend/utils"
+	"github.com/sirupsen/logrus"
 )
 
 func main() {
@@ -35,6 +36,18 @@ func main() {
 			}
 		}
 	}
+
+	lvl, ok := os.LookupEnv("LOG_LEVEL")
+	if !ok {
+		lvl = "debug"
+	}
+	ll, err := logrus.ParseLevel(lvl)
+	if err != nil {
+		ll = logrus.DebugLevel
+	}
+	logrus.SetLevel(ll)
+
 	service := service.New(os.Getenv("MAIL_TOKEN"), os.Getenv("TEMPLATE_KEY"), os.Getenv("SECRET_KEY"), os.Getenv("POSTGRES_USER"), os.Getenv("POSTGRES_PASSWORD"), os.Getenv("POSTGRES_HOST"), os.Getenv("POSTGRES_DATABASE"), os.Getenv("REDIS_HOST"), os.Getenv("REDIS_PASSWORD"), os.Getenv("CAPTCHA_SECRET"), os.Getenv("PRODUCTION") == "true", globalRPI, routeRPMS)
 	service.Start()
+
 }

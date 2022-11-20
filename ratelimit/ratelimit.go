@@ -11,21 +11,21 @@ import (
 
 type RateLimiter struct {
 	redis       *redis.Client
-	logger      *logrus.Logger
 	globalLimit int
 	routes      map[string]int
 }
 
-func New(redisClient *redis.Client, logger *logrus.Logger, globalRPI int, routes map[string]int) *RateLimiter {
+func New(redisClient *redis.Client, globalRPI int, routes map[string]int) *RateLimiter {
 	return &RateLimiter{
 		redis:       redisClient,
-		logger:      logger,
 		routes:      routes,
 		globalLimit: globalRPI,
 	}
 }
-func (c *RateLimiter) CheckUserRateLimit(userId, path string) bool {
 
+// Function that checks the user's ratelimit.
+// We are checking for two types of entries: the global rate limit and route rate limit
+func (c *RateLimiter) CheckUserRateLimit(userId, path string) bool {
 	ctx := context.TODO()
 
 	globalKey := fmt.Sprintf("%v:global", userId)
@@ -33,7 +33,7 @@ func (c *RateLimiter) CheckUserRateLimit(userId, path string) bool {
 	if err == redis.Nil {
 		err = c.redis.Set(ctx, globalKey, 1, time.Second*60).Err()
 		if err != nil {
-			c.logger.Error("redis error:", err)
+			logrus.Error("redis error:", err)
 			return false
 		}
 	}
@@ -42,7 +42,7 @@ func (c *RateLimiter) CheckUserRateLimit(userId, path string) bool {
 	}
 	_, err = c.redis.Incr(ctx, globalKey).Result()
 	if err != nil {
-		c.logger.Error("redis error:", err)
+		logrus.Error("redis error:", err)
 	}
 
 	routeLimit, ok := c.routes[path]
@@ -54,13 +54,13 @@ func (c *RateLimiter) CheckUserRateLimit(userId, path string) bool {
 	if err == redis.Nil {
 		err = c.redis.Set(ctx, routeKey, 1, time.Second*60).Err()
 		if err != nil {
-			c.logger.Error("redis error:", err)
+			logrus.Error("redis error: ", err)
 			return false
 		}
 		return false
 	}
 	if err != nil {
-		c.logger.Error("redis error:", err)
+		logrus.Error("redis error: ", err)
 		return false
 	}
 	if routeRequests > routeLimit {
@@ -68,7 +68,12 @@ func (c *RateLimiter) CheckUserRateLimit(userId, path string) bool {
 	}
 	_, err = c.redis.Incr(ctx, routeKey).Result()
 	if err != nil {
-		c.logger.Error("redis error:", err)
+		logrus.Error("redis error:", err)
 	}
 	return false
+}
+
+// TODO: implement this
+func (r *RateLimiter) CheckEmailRateLimit(email string) bool {
+	return true
 }

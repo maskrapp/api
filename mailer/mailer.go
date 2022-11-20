@@ -71,6 +71,7 @@ func (m *Mailer) SendVerifyMail(email, code string) error {
 		"Authorization": {authHeader},
 	}
 	resp, err := m.httpClient.Do(request)
+
 	if err != nil {
 		return err
 	}

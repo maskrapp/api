@@ -11,11 +11,10 @@ import (
 	apiauth "github.com/maskrapp/backend/service/routes/api/auth"
 	"github.com/maskrapp/backend/service/routes/api/user"
 	"github.com/maskrapp/backend/service/routes/auth"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB, logger *logrus.Logger, ratelimiter *ratelimit.RateLimiter, recaptcha *recaptcha.Recaptcha) {
+func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB, ratelimiter *ratelimit.RateLimiter, recaptcha *recaptcha.Recaptcha) {
 	app.Use(cors.New())
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
@@ -24,9 +23,9 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, go
 		return c.JSON(c.GetReqHeaders())
 	})
 	authGroup := app.Group("/auth")
-	authGroup.Post("/google", auth.GoogleHandler(jwtHandler, gorm, logger))
+	authGroup.Post("/google", auth.GoogleHandler(jwtHandler, gorm))
 
-	authGroup.Post("create-account-code", auth.CreateAccountCode(gorm, jwtHandler, logger, mailer, recaptcha))
+	authGroup.Post("create-account-code", auth.CreateAccountCode(gorm, jwtHandler, mailer, recaptcha))
 	authGroup.Post("verify-account-code", auth.VerifyAccountCode(gorm, recaptcha))
 	authGroup.Post("resend-account-code", auth.ResendAccountCode(gorm, mailer, recaptcha))
 	authGroup.Post("create-account", auth.CreateAccount(gorm, jwtHandler, recaptcha))

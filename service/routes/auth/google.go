@@ -19,7 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) func(*fiber.Ctx) error {
+func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		type body struct {
 			Code string `json:"code"`
@@ -37,7 +37,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 		}
 		data, err := extractGoogleData(values.Code)
 		if err != nil {
-			logger.Error(err)
+			logrus.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(
 				&models.APIResponse{
 					Success: false,
@@ -52,7 +52,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 		var user *dbmodels.User
 		err = db.First(provider).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
-			logger.Error("Database error:", err)
+			logrus.Error("Database error:", err)
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong!",
@@ -62,7 +62,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 			usr, err := createGoogleUser(db, data)
 			user = usr
 			if err != nil {
-				logger.Error("Database error:", err)
+				logrus.Error("Database error:", err)
 				return c.Status(500).JSON(&models.APIResponse{
 					Success: false,
 					Message: "Something went wrong!",
@@ -74,7 +74,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 				UserID:       user.ID,
 			}).Error
 			if err != nil {
-				logger.Error("Database error:", err)
+				logrus.Error("Database error:", err)
 				return c.Status(500).JSON(&models.APIResponse{
 					Success: false,
 					Message: "Something went wrong!",
@@ -87,7 +87,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 				Email:      data.Email,
 			}).Error
 			if err != nil {
-				logger.Error("Database error:", err)
+				logrus.Error("Database error:", err)
 				return c.Status(500).JSON(&models.APIResponse{
 					Success: false,
 					Message: "Something went wrong!",
@@ -99,7 +99,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB, logger *logrus.Logger) 
 			}
 			err := db.First(usr).Error
 			if err != nil {
-				logger.Error("Database error:", err)
+				logrus.Error("Database error:", err)
 				return c.Status(500).JSON(&models.APIResponse{
 					Success: false,
 					Message: "Something went wrong!",

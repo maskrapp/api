@@ -2,6 +2,7 @@ package user
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/models"
@@ -23,7 +24,7 @@ func DeleteMask(db *gorm.DB) func(*fiber.Ctx) error {
 				Message: "Invalid Body",
 			})
 		}
-		mask := val.(string)
+		mask := strings.ToLower(val.(string))
 		userID := c.Locals("user_id").(string)
 
 		err = db.Delete(&dbmodels.Mask{}, "mask = ? AND user_id = ?", mask, userID).Error
