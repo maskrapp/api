@@ -3,7 +3,7 @@ module github.com/maskrapp/backend
 go 1.18
 
 require (
-	github.com/go-redis/redis/v9 v9.0.0-rc.1
+	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/gofiber/fiber/v2 v2.38.1
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
@@ -31,8 +31,8 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
-	golang.org/x/net v0.0.0-20220722155237-a158d28d115b // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
@@ -47,5 +47,5 @@ require (
 	github.com/valyala/fasthttp v1.40.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/oauth2 v0.0.0-20220909003341-f21342109be1
-	golang.org/x/sys v0.0.0-20220722155257-8c9f86f7a55f // indirect
+	golang.org/x/sys v0.2.0 // indirect
 )
