@@ -34,7 +34,6 @@ func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDat
 		Password: redisPassword,
 	})
 
-	//TODO: skip step if err
 	status := redisClient.Conn().Ping(context.TODO())
 	err := status.Err()
 	if err != nil {
@@ -65,10 +64,12 @@ func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDat
 }
 
 func (b *BackendService) Start() {
-	err := b.db.AutoMigrate(&models.User{}, &models.Email{}, &models.EmailVerification{}, &models.Mask{}, &models.Provider{}, &models.AccountVerification{})
+	err := b.db.AutoMigrate(&models.User{}, &models.Email{}, &models.EmailVerification{}, &models.Mask{}, &models.Provider{}, &models.AccountVerification{}, &models.Domain{})
+
 	if err != nil {
 		panic(err)
 	}
+
 	b.fiber.Listen(":80")
 }
 func (b *BackendService) Shutdown() {
