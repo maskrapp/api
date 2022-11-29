@@ -25,7 +25,10 @@ func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 			return c.SendStatus(500)
 		}
 		if b.Email == "" || b.Domain == "" || b.Name == "" {
-			return c.Status(400).SendString("Invalid Body")
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Invalid body",
+			})
 		}
 		fullEmail := strings.ToLower(b.Name + "@" + b.Domain)
 		if !utils.EmailRegex.MatchString(fullEmail) {
@@ -34,7 +37,15 @@ func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 				Message: "Invalid masked email address",
 			})
 		}
-		if b.Domain != "relay.maskr.app" {
+
+		var result struct {
+			Found bool
+		}
+		db.Raw("SELECT EXISTS(SELECT 1 FROM domains WHERE domain = ?) AS found",
+			b.Domain).Scan(&result)
+
+		//TODO: check if user can use the domain with their plan
+		if !result.Found {
 			return c.Status(404).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Domain not found",
@@ -43,13 +54,13 @@ func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 
 		userID := c.Locals("user_id").(string)
 
-		var result struct {
+		var result2 struct {
 			Found bool
 		}
 
 		db.Raw("SELECT EXISTS(SELECT 1 FROM masks WHERE mask = ?) AS found",
-			fullEmail).Scan(&result)
-		if result.Found {
+			fullEmail).Scan(&result2)
+		if result2.Found {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "That mask already exists",
