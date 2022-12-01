@@ -17,16 +17,15 @@ import (
 // TODO: harden this
 func RefreshToken(jwtHandler *jwt.JWTHandler, db *gorm.DB, redisClient *redis.Client) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		body := make(map[string]interface{})
+		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
 		if err != nil {
 			return c.SendStatus(401)
 		}
-		val, ok := body["refresh_token"]
+		refreshToken, ok := body["refresh_token"]
 		if !ok {
 			return c.Status(401).SendString("Invalid Body")
 		}
-		refreshToken := val.(string)
 		claims, err := jwtHandler.Validate(refreshToken, true)
 		if err != nil {
 			return c.Status(401).JSON(&models.APIResponse{

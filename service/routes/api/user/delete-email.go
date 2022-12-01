@@ -12,19 +12,18 @@ import (
 
 func DeleteEmail(db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		body := make(map[string]interface{})
+		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
 		if err != nil {
 			return c.SendStatus(500)
 		}
-		val, ok := body["email"]
+		email, ok := body["email"]
 		if !ok {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Invalid Body",
 			})
 		}
-		email := val.(string)
 		userID := c.Locals("user_id").(string)
 
 		err = db.Delete(&dbmodels.Email{}, "email = ? AND user_id = ?", email, userID).Error

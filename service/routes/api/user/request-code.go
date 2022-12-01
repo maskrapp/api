@@ -14,7 +14,7 @@ import (
 
 func RequestCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		body := make(map[string]interface{})
+		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
@@ -22,12 +22,11 @@ func RequestCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		val, ok := body["email"]
+		email, ok := body["email"]
 		if !ok {
 			return c.Status(400).SendString("Invalid Body")
 		}
 
-		email := val.(string)
 		userID := c.Locals("user_id").(string)
 
 		emailRecord := &dbmodels.Email{}

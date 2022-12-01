@@ -12,7 +12,7 @@ import (
 
 func DeleteMask(db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		body := make(map[string]interface{})
+		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
 		if err != nil {
 			return c.SendStatus(500)
@@ -24,7 +24,7 @@ func DeleteMask(db *gorm.DB) func(*fiber.Ctx) error {
 				Message: "Invalid Body",
 			})
 		}
-		mask := strings.ToLower(val.(string))
+		mask := strings.ToLower(val)
 		userID := c.Locals("user_id").(string)
 
 		err = db.Delete(&dbmodels.Mask{}, "mask = ? AND user_id = ?", mask, userID).Error

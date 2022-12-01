@@ -15,19 +15,18 @@ import (
 
 func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		body := make(map[string]interface{})
+		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
 		if err != nil {
 			return c.SendStatus(500)
 		}
-		val, ok := body["email"]
+		email, ok := body["email"]
 		if !ok {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Invalid body",
 			})
 		}
-		email := val.(string)
 		if !utils.EmailRegex.MatchString(email) {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,

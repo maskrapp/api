@@ -12,7 +12,7 @@ import (
 
 func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		body := make(map[string]interface{})
+		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
@@ -20,8 +20,8 @@ func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		codeVal, ok := body["code"]
-		emailVal, ok2 := body["email"]
+		code, ok := body["code"]
+		email, ok2 := body["email"]
 
 		if !ok || !ok2 {
 			return c.Status(400).JSON(&models.APIResponse{
@@ -29,9 +29,6 @@ func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
 				Message: "Invalid body",
 			})
 		}
-
-		code := codeVal.(string)
-		email := emailVal.(string)
 
 		userID := c.Locals("user_id").(string)
 		emailModel := &dbmodels.Email{}
