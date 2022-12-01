@@ -1,17 +1,21 @@
 package auth
 
 import (
+	"context"
 	"encoding/json"
+	"fmt"
 
+	"github.com/go-redis/redis/v9"
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/jwt"
 	"github.com/maskrapp/backend/models"
 	dbmodels "github.com/maskrapp/common/models"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
-//TODO: harden this
-func RefreshToken(jwtHandler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error {
+// TODO: harden this
+func RefreshToken(jwtHandler *jwt.JWTHandler, db *gorm.DB, redisClient *redis.Client) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]interface{})
 		err := json.Unmarshal(c.Body(), &body)
@@ -29,6 +33,18 @@ func RefreshToken(jwtHandler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) erro
 				Success: false,
 				Message: "Invalid token",
 			})
+		}
+		key := fmt.Sprintf("blacklist:%v", refreshToken)
+		err = redisClient.Get(context.Background(), key).Err()
+		if err == nil {
+			return c.Status(401).JSON(&models.APIResponse{
+				Success: false,
+				Message: "That token is blacklisted",
+			})
+		} else {
+			if err != redis.Nil {
+				logrus.Error("redis error(refresh-token): ", err)
+			}
 		}
 		user := &dbmodels.User{}
 		err = db.First(user, "id = ?", claims.UserId).Error

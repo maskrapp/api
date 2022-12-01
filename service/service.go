@@ -59,7 +59,7 @@ func New(emailToken, templateToken, jwtSecret, dbUser, dbPassword, dbHost, dbDat
 		ratelimiter: rateLimiter,
 	}
 
-	routes.Setup(service.fiber, service.mailer, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*5, time.Hour*24), db, rateLimiter, recaptcha.New(httpClient, captchaSecret))
+	routes.Setup(service.fiber, service.mailer, jwt.New(os.Getenv("SECRET_KEY"), time.Minute*5, time.Hour*24), db, rateLimiter, recaptcha.New(httpClient, captchaSecret), redisClient)
 	return service
 }
 

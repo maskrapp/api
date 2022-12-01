@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"github.com/go-redis/redis/v9"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/maskrapp/backend/jwt"
@@ -14,7 +15,8 @@ import (
 	"gorm.io/gorm"
 )
 
-func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB, ratelimiter *ratelimit.RateLimiter, recaptcha *recaptcha.Recaptcha) {
+// TODO: refactor this...
+func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB, ratelimiter *ratelimit.RateLimiter, recaptcha *recaptcha.Recaptcha, redisClient *redis.Client) {
 	app.Use(cors.New())
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
@@ -52,6 +54,6 @@ func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, go
 	apiUserGroup.Get("/domains", user.Domains(gorm))
 
 	apiAuthGroup := apiGroup.Group("/auth")
-	apiAuthGroup.Post("/refresh", apiauth.RefreshToken(jwtHandler, gorm))
-
+	apiAuthGroup.Post("/refresh", apiauth.RefreshToken(jwtHandler, gorm, redisClient))
+	apiAuthGroup.Post("/revoke-token", apiauth.RevokeToken(gorm, jwtHandler, redisClient))
 }
