@@ -28,7 +28,7 @@ func New(redisClient *redis.Client, globalRPI int, routes map[string]int) *RateL
 func (c *RateLimiter) CheckUserRateLimit(userId, path string) bool {
 	ctx := context.TODO()
 
-	globalKey := fmt.Sprintf("%v:global", userId)
+	globalKey := fmt.Sprintf("ratelimit:%v:global", userId)
 	totalRequests, err := c.redis.Get(ctx, globalKey).Int()
 	if err == redis.Nil {
 		err = c.redis.Set(ctx, globalKey, 1, time.Second*60).Err()
@@ -49,7 +49,7 @@ func (c *RateLimiter) CheckUserRateLimit(userId, path string) bool {
 	if !ok {
 		return false
 	}
-	routeKey := fmt.Sprintf("%v:%v", userId, path)
+	routeKey := fmt.Sprintf("ratelimit:%v:%v", userId, path)
 	routeRequests, err := c.redis.Get(ctx, routeKey).Int()
 	if err == redis.Nil {
 		err = c.redis.Set(ctx, routeKey, 1, time.Second*60).Err()
