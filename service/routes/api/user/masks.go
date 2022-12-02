@@ -18,7 +18,7 @@ func Masks(db *gorm.DB) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		userID := c.Locals("user_id").(string)
 		masks := []record{}
-		err := db.Table("masks").Select("masks.mask, masks.enabled, masks.messages_forwarded, masks.messages_received, emails.email").Joins("inner join emails on emails.id = masks.forward_to").Where("emails.user_id = ?", userID).Find(&masks).Error
+		err := db.Table("masks").Select("masks.mask, masks.enabled, masks.messages_forwarded, masks.messages_received, emails.email").Joins("inner join emails on emails.id = masks.forward_to").Where("emails.user_id = ?", userID).Order("masks.created_at DESC").Find(&masks).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
