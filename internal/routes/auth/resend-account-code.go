@@ -5,9 +5,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/maskrapp/backend/internal/mailer"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	"github.com/maskrapp/backend/internal/recaptcha"
 	"github.com/maskrapp/backend/internal/utils"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
@@ -19,7 +18,7 @@ type resendAccountCodeBody struct {
 }
 
 // TODO: rate limit this
-func ResendAccountCode(db *gorm.DB, mailer *mailer.Mailer, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
+func ResendAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 
 		body := &resendAccountCodeBody{}
@@ -43,12 +42,13 @@ func ResendAccountCode(db *gorm.DB, mailer *mailer.Mailer, recaptcha *recaptcha.
 			return c.Status(400).JSON(&models.APIResponse{Success: false,
 				Message: "Invalid email"})
 		}
-		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "resend_account_code") {
+		if !ctx.Instances().Recaptcha.ValidateCaptchaToken(body.CaptchaToken, "resend_account_code") {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Captcha failed. Try again."})
 		}
 		verificationRecord := &dbmodels.AccountVerification{}
+		db := ctx.Instances().Gorm
 		err = db.First(verificationRecord, "email = ?", body.Email).Error
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
@@ -72,7 +72,7 @@ func ResendAccountCode(db *gorm.DB, mailer *mailer.Mailer, recaptcha *recaptcha.
 				Message: "Something went wrong",
 			})
 		}
-		err = mailer.SendUserVerificationMail(body.Email, verificationCode)
+		err = ctx.Instances().Mailer.SendUserVerificationMail(body.Email, verificationCode)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

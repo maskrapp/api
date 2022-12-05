@@ -6,14 +6,13 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/maskrapp/backend/internal/mailer"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
 	dbmodels "github.com/maskrapp/common/models"
-	"gorm.io/gorm"
 )
 
-func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
+func AddEmail(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
@@ -46,6 +45,8 @@ func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 		var result struct {
 			Found bool
 		}
+
+		db := ctx.Instances().Gorm
 
 		db.Raw("SELECT EXISTS(SELECT 1 FROM emails WHERE user_id = ? AND email = ?) AS found",
 			userId, email).Scan(&result)
@@ -85,7 +86,7 @@ func AddEmail(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		err = mailer.SendVerifyMail(email, emailVerification.VerificationCode)
+		err = ctx.Instances().Mailer.SendVerifyMail(email, emailVerification.VerificationCode)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

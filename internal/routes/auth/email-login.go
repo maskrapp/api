@@ -2,12 +2,10 @@ package auth
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/maskrapp/backend/internal/jwt"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	"github.com/maskrapp/backend/internal/recaptcha"
 	"github.com/maskrapp/backend/internal/utils"
 	dbModels "github.com/maskrapp/common/models"
-	"gorm.io/gorm"
 )
 
 type emailLoginBody struct {
@@ -17,7 +15,7 @@ type emailLoginBody struct {
 }
 
 // TODO: harden this
-func EmailLogin(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
+func EmailLogin(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 
 		body := &emailLoginBody{}
@@ -35,13 +33,14 @@ func EmailLogin(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha.Re
 				Message: "Invalid body",
 			})
 		}
-		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "email_login") {
+		if !ctx.Instances().Recaptcha.ValidateCaptchaToken(body.CaptchaToken, "email_login") {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Captcha failed. Try again."})
 		}
 
 		user := &dbModels.User{}
+		db := ctx.Instances().Gorm
 
 		err = db.Raw("select users.* from providers inner join users on providers.user_id = users.id where provider_name = 'email' and users.email = ?", body.Email).Limit(1).Scan(user).Error
 		if err != nil {
@@ -64,7 +63,7 @@ func EmailLogin(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha.Re
 			})
 		}
 
-		pair, err := jwtHandler.CreatePair(user.ID, user.TokenVersion)
+		pair, err := ctx.Instances().JWT.CreatePair(user.ID, user.TokenVersion)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

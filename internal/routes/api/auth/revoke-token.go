@@ -1,20 +1,18 @@
 package auth
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/gofiber/fiber/v2"
-	"github.com/maskrapp/backend/internal/jwt"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 )
 
-func RevokeToken(db *gorm.DB, jwtHandler *jwt.JWTHandler, redisClient *redis.Client) func(*fiber.Ctx) error {
+func RevokeToken(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
@@ -28,16 +26,15 @@ func RevokeToken(db *gorm.DB, jwtHandler *jwt.JWTHandler, redisClient *redis.Cli
 				Message: "Invalid body",
 			})
 		}
-		claims, err := jwtHandler.Validate(refreshToken, true)
+		claims, err := ctx.Instances().JWT.Validate(refreshToken, true)
 		if err != nil {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Invalid token",
 			})
 		}
-		ctx := context.Background()
 		key := fmt.Sprintf("blacklist:%v", refreshToken)
-		cmd := redisClient.Get(ctx, key)
+		cmd := ctx.Instances().Redis.Get(c.Context(), key)
 		err = cmd.Err()
 		if err != nil {
 			if err != redis.Nil {
@@ -48,7 +45,7 @@ func RevokeToken(db *gorm.DB, jwtHandler *jwt.JWTHandler, redisClient *redis.Cli
 				})
 			} else {
 				expiresAt := time.Unix(claims.ExpiresAt, 0)
-				res := redisClient.Set(ctx, key, 1, expiresAt.Sub(time.Now()))
+				res := ctx.Instances().Redis.Set(c.Context(), key, 1, expiresAt.Sub(time.Now()))
 				err = res.Err()
 				if err != nil {
 					logrus.Error("redis err(revoke-token2): ", err)

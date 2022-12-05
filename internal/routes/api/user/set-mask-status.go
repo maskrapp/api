@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
@@ -14,7 +15,7 @@ type setMaskBody struct {
 	Value bool   `json:"value"`
 }
 
-func SetMaskStatus(db *gorm.DB) func(*fiber.Ctx) error {
+func SetMaskStatus(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		b := &setMaskBody{}
 		err := json.Unmarshal(c.Body(), &b)
@@ -32,7 +33,7 @@ func SetMaskStatus(db *gorm.DB) func(*fiber.Ctx) error {
 			"enabled": b.Value,
 		}
 
-		err = db.Model(&dbmodels.Mask{}).Where("mask = ? and user_id = ?", b.Mask, userID).Updates(values).Error
+		err = ctx.Instances().Gorm.Model(&dbmodels.Mask{}).Where("mask = ? and user_id = ?", b.Mask, userID).Updates(values).Error
 
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {

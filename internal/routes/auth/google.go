@@ -10,7 +10,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/maskrapp/backend/internal/jwt"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	dbmodels "github.com/maskrapp/common/models"
 	"github.com/sirupsen/logrus"
@@ -19,7 +19,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error {
+func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		type body struct {
 			Code string `json:"code"`
@@ -50,6 +50,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 			ProviderName: "google",
 		}
 		var user *dbmodels.User
+		db := ctx.Instances().Gorm
 		err = db.First(provider).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
 			logrus.Error("Database error:", err)
@@ -59,7 +60,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 			})
 		}
 		if err == gorm.ErrRecordNotFound {
-			usr, err := createGoogleUser(db, data)
+			usr, err := createGoogleUser(ctx.Instances().Gorm, data)
 			user = usr
 			if err != nil {
 				logrus.Error("Database error:", err)
@@ -107,7 +108,7 @@ func GoogleHandler(handler *jwt.JWTHandler, db *gorm.DB) func(*fiber.Ctx) error 
 			}
 			user = usr
 		}
-		pair, err := handler.CreatePair(user.ID, user.TokenVersion)
+		pair, err := ctx.Instances().JWT.CreatePair(user.ID, user.TokenVersion)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

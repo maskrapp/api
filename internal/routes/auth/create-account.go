@@ -3,9 +3,8 @@ package auth
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/maskrapp/backend/internal/jwt"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	"github.com/maskrapp/backend/internal/recaptcha"
 	"github.com/maskrapp/backend/internal/utils"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
@@ -18,7 +17,7 @@ type createAccountBody struct {
 	CaptchaToken string `json:"captcha_token"`
 }
 
-func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
+func CreateAccount(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 
 		body := &createAccountBody{}
@@ -44,7 +43,7 @@ func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha
 			})
 		}
 
-		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "create_account") {
+		if !ctx.Instances().Recaptcha.ValidateCaptchaToken(body.CaptchaToken, "create_account") {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Captcha failed. Try again.",
@@ -52,6 +51,7 @@ func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha
 		}
 
 		verificationRecord := &dbmodels.AccountVerification{}
+		db := ctx.Instances().Gorm
 		err = db.First(verificationRecord, "email = ? AND verification_code = ? ", body.Email, body.Code).Error
 
 		if err != nil {
@@ -69,12 +69,14 @@ func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha
 
 		err = db.Delete(&dbmodels.AccountVerification{}, "email = ?", body.Email).Error
 
+		//TODO: why are we returning here?
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Something went wrong",
 			})
 		}
+
 		hashedPassword, err := utils.HashPassword(body.Password)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
@@ -114,7 +116,7 @@ func CreateAccount(db *gorm.DB, jwtHandler *jwt.JWTHandler, recaptcha *recaptcha
 				Message: "Something went wrong!",
 			})
 		}
-		pair, err := jwtHandler.CreatePair(user.ID, user.TokenVersion)
+		pair, err := ctx.Instances().JWT.CreatePair(user.ID, user.TokenVersion)
 
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{

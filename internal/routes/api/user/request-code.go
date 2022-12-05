@@ -5,14 +5,13 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/maskrapp/backend/internal/mailer"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
 	dbmodels "github.com/maskrapp/common/models"
-	"gorm.io/gorm"
 )
 
-func RequestCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
+func RequestCode(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
@@ -30,6 +29,7 @@ func RequestCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 		userID := c.Locals("user_id").(string)
 
 		emailRecord := &dbmodels.Email{}
+		db := ctx.Instances().Gorm
 		err = db.Find(emailRecord, "email = ? AND user_id = ? AND is_verified = false", email, userID).Error
 
 		if err != nil {
@@ -52,7 +52,7 @@ func RequestCode(db *gorm.DB, mailer *mailer.Mailer) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		err = mailer.SendVerifyMail(email, verification.VerificationCode)
+		err = ctx.Instances().Mailer.SendVerifyMail(email, verification.VerificationCode)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

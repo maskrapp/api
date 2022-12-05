@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
 	dbmodels "github.com/maskrapp/common/models"
@@ -17,7 +18,7 @@ type addMaskBody struct {
 	Domain string `json:"domain"`
 }
 
-func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
+func AddMask(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		b := &addMaskBody{}
 		err := json.Unmarshal(c.Body(), &b)
@@ -41,6 +42,7 @@ func AddMask(db *gorm.DB) func(*fiber.Ctx) error {
 		var result struct {
 			Found bool
 		}
+		db := ctx.Instances().Gorm
 		db.Raw("SELECT EXISTS(SELECT 1 FROM domains WHERE domain = ?) AS found",
 			b.Domain).Scan(&result)
 

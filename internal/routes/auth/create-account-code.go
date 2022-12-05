@@ -4,10 +4,8 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/maskrapp/backend/internal/jwt"
-	"github.com/maskrapp/backend/internal/mailer"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	"github.com/maskrapp/backend/internal/recaptcha"
 	"github.com/maskrapp/backend/internal/utils"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
@@ -18,7 +16,7 @@ type createAccountCodeBody struct {
 	CaptchaToken string `json:"captcha_token"`
 }
 
-func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, mailer *mailer.Mailer, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
+func CreateAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := &createAccountCodeBody{}
 		err := c.BodyParser(body)
@@ -40,13 +38,15 @@ func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, mailer *mailer.M
 				Message: "Invalid email"})
 		}
 
-		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "create_account_code") {
+		if !ctx.Instances().Recaptcha.ValidateCaptchaToken(body.CaptchaToken, "create_account_code") {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Captcha failed. Try again."})
 		}
 
 		data := make(map[string]interface{}, 0)
+
+		db := ctx.Instances().Gorm
 
 		err = db.Raw("select * from providers inner join users on providers.user_id = users.id where provider_name = 'email' and users.email = ?", body.Email).Limit(1).Scan(data).Error
 		if err != nil {
@@ -82,7 +82,7 @@ func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, mailer *mailer.M
 					Message: "Something went wrong",
 				})
 			}
-			err = mailer.SendUserVerificationMail(body.Email, verificationCode)
+			err = ctx.Instances().Mailer.SendUserVerificationMail(body.Email, verificationCode)
 			if err != nil {
 				return c.Status(500).JSON(&models.APIResponse{
 					Success: false,
@@ -99,7 +99,7 @@ func CreateAccountCode(db *gorm.DB, jwtHandler *jwt.JWTHandler, mailer *mailer.M
 						Message: "Something went wrong",
 					})
 				}
-				err = mailer.SendUserVerificationMail(body.Email, verificationCode)
+				err = ctx.Instances().Mailer.SendUserVerificationMail(body.Email, verificationCode)
 				if err != nil {
 					return c.Status(500).JSON(&models.APIResponse{
 						Success: false,

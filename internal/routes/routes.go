@@ -1,59 +1,54 @@
 package routes
 
 import (
-	"github.com/go-redis/redis/v9"
+	"time"
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/maskrapp/backend/internal/jwt"
-	"github.com/maskrapp/backend/internal/mailer"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/middleware"
-	"github.com/maskrapp/backend/internal/ratelimit"
-	"github.com/maskrapp/backend/internal/recaptcha"
 	apiauth "github.com/maskrapp/backend/internal/routes/api/auth"
 	"github.com/maskrapp/backend/internal/routes/api/user"
 	"github.com/maskrapp/backend/internal/routes/auth"
-	"gorm.io/gorm"
 )
 
-// TODO: refactor this...
-func Setup(app *fiber.App, mailer *mailer.Mailer, jwtHandler *jwt.JWTHandler, gorm *gorm.DB, ratelimiter *ratelimit.RateLimiter, recaptcha *recaptcha.Recaptcha, redisClient *redis.Client) {
+func Setup(ctx global.Context, app *fiber.App) {
 	app.Use(cors.New())
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
 	})
+
 	app.Get("/headers", func(c *fiber.Ctx) error {
 		return c.JSON(c.GetReqHeaders())
 	})
-	authGroup := app.Group("/auth")
-	authGroup.Post("/google", auth.GoogleHandler(jwtHandler, gorm))
 
-	authGroup.Post("create-account-code", auth.CreateAccountCode(gorm, jwtHandler, mailer, recaptcha))
-	authGroup.Post("verify-account-code", auth.VerifyAccountCode(gorm, recaptcha))
-	authGroup.Post("resend-account-code", auth.ResendAccountCode(gorm, mailer, recaptcha))
-	authGroup.Post("create-account", auth.CreateAccount(gorm, jwtHandler, recaptcha))
-	authGroup.Post("email-login", auth.EmailLogin(gorm, jwtHandler, recaptcha))
+	authGroup := app.Group("/auth")
+	authGroup.Post("/google", auth.GoogleHandler(ctx))
+	authGroup.Post("create-account-code", middleware.EmailRateLimit(ctx, 3, time.Minute, auth.CreateAccountCode(ctx)))
+	authGroup.Post("verify-account-code", middleware.EmailRateLimit(ctx, 5, time.Minute, auth.VerifyAccountCode(ctx)))
+	authGroup.Post("resend-account-code", middleware.EmailRateLimit(ctx, 3, time.Minute, auth.ResendAccountCode(ctx)))
+	authGroup.Post("create-account", middleware.EmailRateLimit(ctx, 5, time.Minute, auth.CreateAccount(ctx)))
+	authGroup.Post("email-login", middleware.EmailRateLimit(ctx, 7, time.Minute, auth.EmailLogin(ctx)))
 
 	apiGroup := app.Group("/api")
 
 	apiUserGroup := apiGroup.Group("/user")
-	apiUserGroup.Use(middleware.AuthMiddleware(jwtHandler))
-	apiUserGroup.Use(middleware.UserRateLimit(ratelimiter))
+	apiUserGroup.Use(middleware.AuthMiddleware(ctx))
 
-	apiUserGroup.Post("/emails", user.Emails(gorm))
-	apiUserGroup.Post("/add-email", user.AddEmail(gorm, mailer))
-	apiUserGroup.Delete("/delete-email", user.DeleteEmail(gorm))
+	apiUserGroup.Post("/emails", middleware.UserRateLimit(ctx, 30, time.Minute, user.Emails(ctx)))
+	apiUserGroup.Post("/add-email", middleware.UserRateLimit(ctx, 5, time.Minute, user.AddEmail(ctx)))
+	apiUserGroup.Delete("/delete-email", middleware.UserRateLimit(ctx, 15, time.Minute, user.DeleteEmail(ctx)))
 
-	apiUserGroup.Post("/masks", user.Masks(gorm))
-	apiUserGroup.Post("add-mask", user.AddMask(gorm))
-	apiUserGroup.Delete("delete-mask", user.DeleteMask(gorm))
-	apiUserGroup.Put("set-mask-status", user.SetMaskStatus(gorm))
+	apiUserGroup.Post("/masks", middleware.UserRateLimit(ctx, 30, time.Minute, user.Masks(ctx)))
+	apiUserGroup.Post("add-mask", middleware.UserRateLimit(ctx, 5, time.Minute, user.AddMask(ctx)))
+	apiUserGroup.Delete("delete-mask", middleware.UserRateLimit(ctx, 15, time.Minute, user.DeleteMask(ctx)))
+	apiUserGroup.Put("set-mask-status", middleware.UserRateLimit(ctx, 15, time.Minute, user.SetMaskStatus(ctx)))
 
-	apiUserGroup.Post("/request-code", user.RequestCode(gorm, mailer))
-	apiUserGroup.Post("/verify-email", user.VerifyEmail(gorm))
-
-	apiUserGroup.Get("/domains", user.Domains(gorm))
+	apiUserGroup.Post("/request-code", middleware.UserRateLimit(ctx, 5, time.Minute, user.RequestCode(ctx)))
+	apiUserGroup.Post("/verify-email", middleware.UserRateLimit(ctx, 15, time.Minute, user.VerifyEmail(ctx)))
+	apiUserGroup.Get("/domains", middleware.UserRateLimit(ctx, 30, time.Minute, user.Domains(ctx)))
 
 	apiAuthGroup := apiGroup.Group("/auth")
-	apiAuthGroup.Post("/refresh", apiauth.RefreshToken(jwtHandler, gorm, redisClient))
-	apiAuthGroup.Post("/revoke-token", apiauth.RevokeToken(gorm, jwtHandler, redisClient))
+	apiAuthGroup.Post("/refresh", apiauth.RefreshToken(ctx))
+	apiAuthGroup.Post("/revoke-token", apiauth.RevokeToken(ctx))
 }

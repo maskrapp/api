@@ -2,8 +2,8 @@ package auth
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	"github.com/maskrapp/backend/internal/recaptcha"
 	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
@@ -14,7 +14,7 @@ type verifyAccountCodeBody struct {
 	CaptchaToken string `json:"captcha_token"`
 }
 
-func VerifyAccountCode(db *gorm.DB, recaptcha *recaptcha.Recaptcha) func(*fiber.Ctx) error {
+func VerifyAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := &verifyAccountCodeBody{}
 
@@ -33,11 +33,13 @@ func VerifyAccountCode(db *gorm.DB, recaptcha *recaptcha.Recaptcha) func(*fiber.
 				Message: "Invalid body",
 			})
 		}
-		if !recaptcha.ValidateCaptchaToken(body.CaptchaToken, "verify_account_code") {
+		if !ctx.Instances().Recaptcha.ValidateCaptchaToken(body.CaptchaToken, "verify_account_code") {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Captcha failed. Try again."})
 		}
+
+		db := ctx.Instances().Gorm
 
 		verificationRecord := &dbmodels.AccountVerification{}
 		err = db.First(verificationRecord, "email = ? AND verification_code = ? ", body.Email, body.Code).Error

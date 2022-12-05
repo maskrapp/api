@@ -4,11 +4,11 @@ import (
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
-	"github.com/maskrapp/backend/internal/jwt"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 )
 
-func AuthMiddleware(jwtHandler *jwt.JWTHandler) func(*fiber.Ctx) error {
+func AuthMiddleware(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		auth := c.GetReqHeaders()["Authorization"]
 		if auth == "" {
@@ -22,7 +22,7 @@ func AuthMiddleware(jwtHandler *jwt.JWTHandler) func(*fiber.Ctx) error {
 			})
 		}
 		accessToken := split[1]
-		claims, err := jwtHandler.Validate(accessToken, false)
+		claims, err := ctx.Instances().JWT.Validate(accessToken, false)
 		if err != nil {
 			if strings.Contains(err.Error(), "token mismatch") {
 				return c.Status(400).JSON(&models.APIResponse{

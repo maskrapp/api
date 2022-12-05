@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	dbmodels "github.com/maskrapp/common/models"
-	"gorm.io/gorm"
 )
 
-func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
+func VerifyEmail(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
@@ -32,6 +32,7 @@ func VerifyEmail(db *gorm.DB) func(*fiber.Ctx) error {
 
 		userID := c.Locals("user_id").(string)
 		emailModel := &dbmodels.Email{}
+		db := ctx.Instances().Gorm
 		err = db.Find(emailModel, "user_id = ? AND email = ? AND is_verified = false", userID, email).Error
 		if err != nil {
 			return c.Status(404).JSON(&models.APIResponse{
