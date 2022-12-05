@@ -3,7 +3,7 @@ RUN apt-get update
 WORKDIR /build
 COPY ./ /build/
 RUN go mod download
-RUN go build -o main
+RUN go build ./cmd/main.go
 FROM ubuntu:22.04 as final-stage
 WORKDIR /app
 RUN apt-get update && \
