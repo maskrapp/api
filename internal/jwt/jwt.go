@@ -7,7 +7,7 @@ import (
 	"github.com/golang-jwt/jwt"
 )
 
-type JWTResponse struct {
+type Token struct {
 	Token     string `json:"token"`
 	ExpiresAt int64  `json:"expires_at"`
 }
@@ -29,7 +29,7 @@ type JWTHandler struct {
 	rtExpires time.Duration
 }
 
-func (j *JWTHandler) GenerateAccessToken(id string, version int) (JWTResponse, error) {
+func (j *JWTHandler) GenerateAccessToken(id string, version int) (Token, error) {
 	expiresAt := time.Now().Add(j.atExpires).Unix()
 	claims := UserClaims{
 		UserId:  id,
@@ -42,11 +42,11 @@ func (j *JWTHandler) GenerateAccessToken(id string, version int) (JWTResponse, e
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(j.secret))
 	if err != nil {
-		return JWTResponse{}, err
+		return Token{}, err
 	}
-	return JWTResponse{Token: t, ExpiresAt: claims.ExpiresAt}, nil
+	return Token{Token: t, ExpiresAt: claims.ExpiresAt}, nil
 }
-func (j *JWTHandler) GenerateRefreshToken(id string, version int) (JWTResponse, error) {
+func (j *JWTHandler) GenerateRefreshToken(id string, version int) (Token, error) {
 	expiresAt := time.Now().Add(j.rtExpires).Unix()
 	claims := UserClaims{
 		UserId:  id,
@@ -60,9 +60,9 @@ func (j *JWTHandler) GenerateRefreshToken(id string, version int) (JWTResponse, 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
 	t, err := token.SignedString([]byte(j.secret))
 	if err != nil {
-		return JWTResponse{}, err
+		return Token{}, err
 	}
-	return JWTResponse{Token: t, ExpiresAt: claims.ExpiresAt}, nil
+	return Token{Token: t, ExpiresAt: claims.ExpiresAt}, nil
 }
 
 func (j *JWTHandler) Validate(tokenString string, isRefresh bool) (*UserClaims, error) {
@@ -82,8 +82,8 @@ func (j *JWTHandler) Validate(tokenString string, isRefresh bool) (*UserClaims, 
 }
 
 type Pair struct {
-	AccessToken  JWTResponse `json:"access_token"`
-	RefreshToken JWTResponse `json:"refresh_token"`
+	AccessToken  Token `json:"access_token"`
+	RefreshToken Token `json:"refresh_token"`
 }
 
 func (j *JWTHandler) CreatePair(userID string, version int) (*Pair, error) {
