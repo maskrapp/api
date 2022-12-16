@@ -22,6 +22,8 @@ func Setup(ctx global.Context, app *fiber.App) {
 		return c.JSON(c.GetReqHeaders())
 	})
 
+  app.Post("/check", testDnsRoute(ctx))
+
 	authGroup := app.Group("/auth")
 	authGroup.Post("/google", auth.GoogleHandler(ctx))
 	authGroup.Post("create-account-code", middleware.EmailRateLimit(ctx, 3, time.Minute, auth.CreateAccountCode(ctx)))
