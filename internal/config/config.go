@@ -54,7 +54,7 @@ func New() *Config {
 	cfg.Recaptcha.Secret = os.Getenv("CAPTCHA_SECRET")
 
 	cfg.ZeptoMail.EmailToken = os.Getenv("MAIL_TOKEN")
-	cfg.ZeptoMail.TemplateKey = os.Getenv("MAIL_TEMPLATE")
+	cfg.ZeptoMail.TemplateKey = os.Getenv("MAIL_TEMPLATE_KEY")
 
 	cfg.JWT.Secret = os.Getenv("SECRET_KEY")
 
