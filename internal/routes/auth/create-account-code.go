@@ -8,6 +8,7 @@ import (
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
 	dbmodels "github.com/maskrapp/common/models"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -84,6 +85,7 @@ func CreateAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 			}
 			err = ctx.Instances().Mailer.SendUserVerificationMail(body.Email, verificationCode)
 			if err != nil {
+				logrus.Errorf("mailer error: %v", err)
 				return c.Status(500).JSON(&models.APIResponse{
 					Success: false,
 					Message: "Something went wrong",
@@ -101,6 +103,7 @@ func CreateAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 				}
 				err = ctx.Instances().Mailer.SendUserVerificationMail(body.Email, verificationCode)
 				if err != nil {
+					logrus.Errorf("mailer error: %v", err)
 					return c.Status(500).JSON(&models.APIResponse{
 						Success: false,
 						Message: "Something went wrong",
