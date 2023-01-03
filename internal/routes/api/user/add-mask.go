@@ -39,15 +39,11 @@ func AddMask(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		var result struct {
-			Found bool
-		}
+		_, err = ctx.Instances().Domains.Get(b.Domain)
 		db := ctx.Instances().Gorm
-		db.Raw("SELECT EXISTS(SELECT 1 FROM domains WHERE domain = ?) AS found",
-			b.Domain).Scan(&result)
 
 		//TODO: check if user can use the domain with their plan
-		if !result.Found {
+		if err != nil {
 			return c.Status(404).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Domain not found",
@@ -56,13 +52,13 @@ func AddMask(ctx global.Context) func(*fiber.Ctx) error {
 
 		userID := c.Locals("user_id").(string)
 
-		var result2 struct {
+		var result struct {
 			Found bool
 		}
 
 		db.Raw("SELECT EXISTS(SELECT 1 FROM masks WHERE mask = ?) AS found",
-			fullEmail).Scan(&result2)
-		if result2.Found {
+			fullEmail).Scan(&result)
+		if result.Found {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "That mask already exists",

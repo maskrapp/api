@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-redis/redis/v9"
 	"github.com/maskrapp/backend/internal/config"
+	"github.com/maskrapp/backend/internal/domains"
 	"github.com/maskrapp/backend/internal/jwt"
 	"github.com/maskrapp/backend/internal/mailer"
 	"github.com/maskrapp/backend/internal/ratelimit"
@@ -20,6 +21,7 @@ type Instances struct {
 	Recaptcha   *recaptcha.Recaptcha
 	JWT         *jwt.JWTHandler
 	Mailer      *mailer.Mailer
+  Domains *domains.Domains
 }
 
 type Context interface {

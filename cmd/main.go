@@ -8,6 +8,7 @@ import (
 	"github.com/go-redis/redis/v9"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/maskrapp/backend/internal/config"
+	"github.com/maskrapp/backend/internal/domains"
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/jwt"
 	"github.com/maskrapp/backend/internal/mailer"
@@ -57,6 +58,7 @@ func main() {
 		Recaptcha:   recaptcha.New(httpClient, cfg.Recaptcha.Secret),
 		JWT:         jwt.New(cfg.JWT.Secret, 5*time.Minute, 24*time.Hour),
 		Mailer:      mailer.New(httpClient, cfg.ZeptoMail.EmailToken, cfg.ZeptoMail.TemplateKey, cfg.Production),
+		Domains:     domains.New(db, 10*time.Minute),
 	}
 
 	gCtx, cancel := global.WithCancel(global.NewContext(context.Background(), instances, cfg))
