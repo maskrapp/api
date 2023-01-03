@@ -7,7 +7,7 @@ require (
 	github.com/gofiber/fiber/v2 v2.40.1
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
-	github.com/maskrapp/common v0.0.0-20221202171004-7ce6afc4fce8
+	github.com/maskrapp/common v0.0.0-20230103145834-da13a72ca70c
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.4.0
 	gorm.io/driver/postgres v1.4.6
