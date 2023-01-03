@@ -108,7 +108,7 @@ func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
 			}
 			user = usr
 		}
-		pair, err := ctx.Instances().JWT.CreatePair(user.ID, user.TokenVersion)
+		pair, err := ctx.Instances().JWT.CreatePair(user.ID, user.TokenVersion, false)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
