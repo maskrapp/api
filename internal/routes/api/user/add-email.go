@@ -86,13 +86,6 @@ func AddEmail(ctx global.Context) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		err = ctx.Instances().Mailer.SendVerifyMail(email, emailVerification.VerificationCode)
-		if err != nil {
-			return c.Status(500).JSON(&models.APIResponse{
-				Success: false,
-				Message: "Could not send verification email, try again later.",
-			})
-		}
 		return c.JSON(&models.APIResponse{
 			Success: true,
 		})
