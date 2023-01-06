@@ -35,6 +35,8 @@ func Setup(ctx global.Context, app *fiber.App) {
 	apiUserGroup := apiGroup.Group("/user")
 	apiUserGroup.Use(middleware.AuthMiddleware(ctx))
 
+	apiUserGroup.Get("/account-details", middleware.UserRateLimit(ctx, 30, time.Minute, user.AccountDetails(ctx)))
+
 	apiUserGroup.Post("/emails", middleware.UserRateLimit(ctx, 30, time.Minute, user.Emails(ctx)))
 	apiUserGroup.Post("/add-email", middleware.UserRateLimit(ctx, 5, time.Minute, user.AddEmail(ctx)))
 	apiUserGroup.Delete("/delete-email", middleware.UserRateLimit(ctx, 15, time.Minute, user.DeleteEmail(ctx)))
