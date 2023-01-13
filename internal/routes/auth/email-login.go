@@ -63,7 +63,7 @@ func EmailLogin(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		pair, err := ctx.Instances().JWT.CreatePair(user.ID, user.TokenVersion, true)
+		pair, err := ctx.Instances().JWT.CreatePair(user.ID, user.TokenVersion, "email")
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

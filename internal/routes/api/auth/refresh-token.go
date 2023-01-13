@@ -66,7 +66,7 @@ func RefreshToken(ctx global.Context) func(*fiber.Ctx) error {
 				Message: "Token version mismatch",
 			})
 		}
-		jwt, err := ctx.Instances().JWT.GenerateAccessToken(claims.UserId, tokenVersion, claims.EmailLogin)
+		jwt, err := ctx.Instances().JWT.GenerateAccessToken(claims.UserId, tokenVersion, claims.Provider)
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

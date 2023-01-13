@@ -8,17 +8,17 @@ import (
 )
 
 type Token struct {
-	Token      string `json:"token"`
-	ExpiresAt  int64  `json:"expires_at"`
-	EmailLogin bool   `json:"email_login"` // will be true if the user logged in with email and password.
+	Token     string `json:"token"`
+	Provider  string `json:"provider"`
+	ExpiresAt int64  `json:"expires_at"`
 }
 
 // UserClaims is used for both the access and refresh tokens.
 type UserClaims struct {
-	UserId     string `json:"id"`
-	Type       string `json:"type"` // 'refresh' for refresh tokens and 'access' for access tokens.
-	Version    int    `json:"version"`
-	EmailLogin bool   `json:"email_login"` // will be true if the user logged in with email and password.
+	UserId   string `json:"id"`
+	Type     string `json:"type"` // 'refresh' for refresh tokens and 'access' for access tokens.
+	Version  int    `json:"version"`
+	Provider string `json:"provider"`
 	jwt.StandardClaims
 }
 
@@ -33,13 +33,13 @@ type JWTHandler struct {
 	rtExpires time.Duration
 }
 
-func (j *JWTHandler) GenerateAccessToken(id string, version int, emailLogin bool) (Token, error) {
+func (j *JWTHandler) GenerateAccessToken(id string, version int, provider string) (Token, error) {
 	expiresAt := time.Now().Add(j.atExpires).Unix()
 	claims := UserClaims{
-		UserId:     id,
-		Version:    version,
-		Type:       "access",
-		EmailLogin: emailLogin,
+		UserId:   id,
+		Version:  version,
+		Type:     "access",
+		Provider: provider,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 		},
@@ -49,15 +49,15 @@ func (j *JWTHandler) GenerateAccessToken(id string, version int, emailLogin bool
 	if err != nil {
 		return Token{}, err
 	}
-	return Token{Token: t, ExpiresAt: claims.ExpiresAt, EmailLogin: emailLogin}, nil
+	return Token{Token: t, ExpiresAt: claims.ExpiresAt, Provider: provider}, nil
 }
-func (j *JWTHandler) GenerateRefreshToken(id string, version int, emailLogin bool) (Token, error) {
+func (j *JWTHandler) GenerateRefreshToken(id string, version int, provider string) (Token, error) {
 	expiresAt := time.Now().Add(j.rtExpires).Unix()
 	claims := UserClaims{
-		UserId:     id,
-		Version:    version,
-		Type:       "refresh",
-		EmailLogin: emailLogin,
+		UserId:   id,
+		Version:  version,
+		Type:     "refresh",
+		Provider: provider,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: expiresAt,
 			Subject:   id,
@@ -68,7 +68,7 @@ func (j *JWTHandler) GenerateRefreshToken(id string, version int, emailLogin boo
 	if err != nil {
 		return Token{}, err
 	}
-	return Token{Token: t, ExpiresAt: claims.ExpiresAt, EmailLogin: emailLogin}, nil
+	return Token{Token: t, ExpiresAt: claims.ExpiresAt, Provider: provider}, nil
 }
 
 func (j *JWTHandler) Validate(tokenString string, isRefresh bool) (*UserClaims, error) {
@@ -92,12 +92,12 @@ type Pair struct {
 	RefreshToken Token `json:"refresh_token"`
 }
 
-func (j *JWTHandler) CreatePair(userID string, version int, emailLogin bool) (*Pair, error) {
-	refreshToken, err := j.GenerateRefreshToken(userID, version, emailLogin)
+func (j *JWTHandler) CreatePair(userID string, version int, provider string) (*Pair, error) {
+	refreshToken, err := j.GenerateRefreshToken(userID, version, provider)
 	if err != nil {
 		return nil, err
 	}
-	accessToken, err := j.GenerateAccessToken(userID, version, emailLogin)
+	accessToken, err := j.GenerateAccessToken(userID, version, provider)
 	if err != nil {
 		return nil, err
 	}
