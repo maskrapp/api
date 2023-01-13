@@ -33,10 +33,12 @@ func AddEmail(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		if strings.Split(email, "@")[1] == "relay.maskr.app" {
+		domain := strings.Split(email, "@")[1]
+
+		if _, err := ctx.Instances().Domains.Get(domain); err == nil {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
-				Message: "Invalid email",
+				Message: "You cannot use that email",
 			})
 		}
 
