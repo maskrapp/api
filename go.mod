@@ -1,6 +1,6 @@
 module github.com/maskrapp/backend
 
-go 1.18
+go 1.19
 
 require (
 	github.com/go-redis/redis/v9 v9.0.0-rc.2
