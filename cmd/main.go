@@ -85,7 +85,7 @@ func main() {
 	}))
 	backend_grpc.RegisterBackendServiceServer(grpcServer, grpc_impl.NewBackendService(gCtx))
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%d", 50051))
+	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", cfg.GRPC.Port))
 	if err != nil {
 		logrus.Panic(err)
 	}

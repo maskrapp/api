@@ -36,6 +36,9 @@ type Config struct {
 	Logger struct {
 		LogLevel string
 	}
+	GRPC struct {
+		Port string
+	}
 	Production bool
 }
 
@@ -64,7 +67,10 @@ func New() *Config {
 
 	cfg.Logger.LogLevel = getOrDefault("LOG_LEVEL", "debug")
 
+  cfg.GRPC.Port = getOrDefault("GRPC_PORT", "50051")
+
 	cfg.Production = getOrDefault("PRODUCTION", "true") == "true"
+
 
 	return cfg
 }
