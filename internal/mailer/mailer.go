@@ -1,22 +1,22 @@
 package mailer
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"net/http"
+	"time"
 
+	"github.com/imroc/req/v3"
 )
 
 type Mailer struct {
-	httpClient  *http.Client
+	httpClient  *req.Client
 	token       string
 	templateKey string
 	production  bool
 }
 
-func New(httpClient *http.Client, token string, templateKey string, production bool) *Mailer {
+func New(token string, templateKey string, production bool) *Mailer {
+	httpClient := req.C()
 	return &Mailer{
 		httpClient:  httpClient,
 		token:       token,
@@ -59,32 +59,30 @@ func (m *Mailer) SendVerifyMail(email, code string) error {
 	if err != nil {
 		return err
 	}
-	request, err := http.NewRequest("POST", "https://api.zeptomail.eu/v1.1/email/template", bytes.NewBuffer(data))
+	var responseData map[string]interface{}
+	headers := map[string]string{
+		"Accept":        "application/json",
+		"Content-Type":  "application/json",
+		"Authorization": fmt.Sprintf("Zoho-enczapikey %v", m.token),
+	}
+	resp, err := m.httpClient.R().SetBody(data).
+		SetRetryCount(3).
+		SetRetryFixedInterval(500 * time.Millisecond).
+		SetRetryCondition(func(resp *req.Response, err error) bool {
+			return !resp.IsSuccess()
+		}).
+		SetHeaders(headers).
+		SetResult(responseData).
+		Post("https://api.zeptomail.eu/v1.1/email/template")
 
 	if err != nil {
 		return err
 	}
 
-	authHeader := fmt.Sprintf("Zoho-enczapikey %v", m.token)
-	request.Header = map[string][]string{
-		"Accept":        {"application/json"},
-		"Content-Type":  {"application/json"},
-		"Authorization": {authHeader},
+	if !resp.IsSuccess() {
+		return fmt.Errorf("expected status code 201, got: %v with response body: %v", resp.StatusCode, responseData)
 	}
-	resp, err := m.httpClient.Do(request)
-
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-	var res map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&res)
-
-	if resp.StatusCode != 201 {
-		errorMessage := fmt.Sprintf("expected status code 201, got: %v with response body: %v", resp.StatusCode, res)
-		return errors.New(errorMessage)
-	}
-	return err
+	return nil
 }
 
 func (m *Mailer) SendUserVerificationMail(email, code string) error {
@@ -93,31 +91,28 @@ func (m *Mailer) SendUserVerificationMail(email, code string) error {
 	if err != nil {
 		return err
 	}
-	request, err := http.NewRequest("POST", "https://api.zeptomail.eu/v1.1/email/template", bytes.NewBuffer(data))
+	var responseData map[string]interface{}
+	headers := map[string]string{
+		"Accept":        "application/json",
+		"Content-Type":  "application/json",
+		"Authorization": fmt.Sprintf("Zoho-enczapikey %v", m.token),
+	}
+
+	resp, err := m.httpClient.R().SetBody(data).
+		SetRetryCount(3).
+		SetRetryFixedInterval(500 * time.Millisecond).
+		SetRetryCondition(func(resp *req.Response, err error) bool {
+			return !resp.IsSuccess()
+		}).
+		SetHeaders(headers).
+		SetResult(responseData).
+		Post("https://api.zeptomail.eu/v1.1/email/template")
 
 	if err != nil {
 		return err
 	}
-
-	authHeader := fmt.Sprintf("Zoho-enczapikey %v", m.token)
-	request.Header = map[string][]string{
-		"Accept":        {"application/json"},
-		"Content-Type":  {"application/json"},
-		"Authorization": {authHeader},
-	}
-	resp, err := m.httpClient.Do(request)
-	if err != nil {
-		return err
-	}
-
-	defer resp.Body.Close()
-
-	var res map[string]interface{}
-	json.NewDecoder(resp.Body).Decode(&res)
-
-	if resp.StatusCode != 201 {
-		errorMessage := fmt.Sprintf("expected status code 201, got: %v with response body: %v", resp.StatusCode, res)
-		return errors.New(errorMessage)
+	if !resp.IsSuccess() {
+		return fmt.Errorf("expected status code 201, got: %v with response body: %v", resp.StatusCode, responseData)
 	}
 	return err
 }

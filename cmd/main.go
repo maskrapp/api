@@ -23,7 +23,6 @@ import (
 	"github.com/maskrapp/backend/internal/ratelimit"
 	"github.com/maskrapp/backend/internal/recaptcha"
 	"github.com/maskrapp/backend/internal/routes"
-	"github.com/maskrapp/backend/internal/utils"
 	"github.com/maskrapp/common/models"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc"
@@ -60,15 +59,13 @@ func main() {
 		logrus.Panic(err)
 	}
 
-	httpClient := utils.CreateCustomHttpClient()
-
 	instances := &global.Instances{
 		Gorm:        db,
 		Redis:       redis,
 		RateLimiter: ratelimit.New(redis, 50, map[string]int{}),
-		Recaptcha:   recaptcha.New(httpClient, cfg.Recaptcha.Secret),
+		Recaptcha:   recaptcha.New(cfg.Recaptcha.Secret),
 		JWT:         jwt.New(cfg.JWT.Secret, 5*time.Minute, 24*time.Hour),
-		Mailer:      mailer.New(httpClient, cfg.ZeptoMail.EmailToken, cfg.ZeptoMail.TemplateKey, cfg.Production),
+		Mailer:      mailer.New(cfg.ZeptoMail.EmailToken, cfg.ZeptoMail.TemplateKey, cfg.Production),
 		Domains:     domains.New(db, 10*time.Minute),
 	}
 

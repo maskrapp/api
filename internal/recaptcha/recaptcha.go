@@ -1,20 +1,20 @@
 package recaptcha
 
 import (
-	"encoding/json"
 	"fmt"
-	"net/http"
+	"time"
 
+	"github.com/imroc/req/v3"
 	"github.com/sirupsen/logrus"
 )
 
 type Recaptcha struct {
-	httpClient *http.Client
+	httpClient *req.Client
 	secret     string
 }
 
-func New(httpClient *http.Client, secret string) *Recaptcha {
-	return &Recaptcha{httpClient, secret}
+func New(secret string) *Recaptcha {
+	return &Recaptcha{req.C().DevMode(), secret}
 }
 
 type responseBody struct {
@@ -30,40 +30,43 @@ func (r *Recaptcha) ValidateCaptchaToken(token, action string) bool {
 
 	url := fmt.Sprintf("https://www.google.com/recaptcha/api/siteverify?secret=%v&response=%v", r.secret, token)
 
-	request, err := http.NewRequest(http.MethodPost, url, nil)
+	headers := map[string]string{
+		"Accept":       "application/json",
+		"Content-Type": "application/json",
+	}
+
+	responseBody := &responseBody{}
+	resp, err := r.httpClient.R().
+		SetRetryFixedInterval(500 * time.Millisecond).
+		SetRetryCondition(func(resp *req.Response, err error) bool {
+			return !resp.IsSuccess()
+		}).
+		SetHeaders(headers).
+    SetResult(responseBody).
+		Post(url)
+
+
+
 	if err != nil {
-		logrus.Error("http request initialization failed: ", err)
+		logrus.Errorf("http request failed: %v", err)
 		return false
 	}
-	request.Header = map[string][]string{
-		"Accept":       {"application/json"},
-		"Content-Type": {"application/json"},
-	}
 
-	response, err := r.httpClient.Do(request)
-	if err != nil {
-		logrus.Error("http request failed: ", err)
-		return false
-	}
-	defer response.Body.Close()
-
-	resBody := &responseBody{}
-	err = json.NewDecoder(response.Body).Decode(resBody)
-	if err != nil {
-		logrus.Error("JSON decoder error: ", err)
+	if !resp.IsSuccess() {
+		logrus.Errorf("http request failed: %v", resp.Dump())
 		return false
 	}
 
-	if len(resBody.ErrorCodes) > 0 {
-		logrus.Error("captcha error codes:", resBody.ErrorCodes)
+	if len(responseBody.ErrorCodes) > 0 {
+		logrus.Error("captcha error codes:", responseBody.ErrorCodes)
 	}
 
-	if !resBody.Success || resBody.Action != action {
+	if !responseBody.Success || responseBody.Action != action {
 		return false
 	}
 
 	//according to https://stackoverflow.com/a/52170635, anything below 0.5 is malicious
-	if resBody.Score < 0.5 {
+	if responseBody.Score < 0.5 {
 		return false
 	}
 	return true
