@@ -85,10 +85,13 @@ func main() {
 	}))
 	backend_grpc.RegisterBackendServiceServer(grpcServer, grpc_impl.NewBackendService(gCtx))
 
-	ln, err := net.Listen("tcp", fmt.Sprintf("0.0.0.0:%v", cfg.GRPC.Port))
+	address := fmt.Sprintf(":%v", cfg.GRPC.Port)
+	ln, err := net.Listen("tcp", address)
 	if err != nil {
 		logrus.Panic(err)
 	}
+
+  logrus.Infof("listening for GRPC requests on port: %v", cfg.GRPC.Port)
 
 	shutdownChan := make(chan os.Signal, 1)
 	signal.Notify(shutdownChan, syscall.SIGINT, syscall.SIGTERM)
