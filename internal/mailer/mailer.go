@@ -53,6 +53,7 @@ func (m *Mailer) createJSON(email, code string) ([]byte, error) {
 	return json.Marshal(reqMap)
 }
 
+// SendVerifyEmail is used when a user adds a new email to their account.
 func (m *Mailer) SendVerifyMail(email, code string) error {
 
 	data, err := m.createJSON(email, code)
@@ -85,7 +86,10 @@ func (m *Mailer) SendVerifyMail(email, code string) error {
 	return nil
 }
 
+// SendUserVerificationMail is used when a user creates their account.
 func (m *Mailer) SendUserVerificationMail(email, code string) error {
+
+  //TODO: perhaps we can use a different template?
 
 	data, err := m.createJSON(email, code)
 	if err != nil {
