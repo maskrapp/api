@@ -50,6 +50,7 @@ func (d *Domains) updateDomains() {
 	d.mutex.Lock()
 	d.domains = domainsMap
 	d.mutex.Unlock()
+	logrus.Debugf("available domains: %v", d.domains)
 }
 
 // Get retrieves a domain under the given input.
