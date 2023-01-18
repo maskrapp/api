@@ -3,9 +3,13 @@ package main
 import (
 	"context"
 	"fmt"
+	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/go-redis/redis/v9"
+	"github.com/gofiber/fiber/v2"
 	_ "github.com/joho/godotenv/autoload"
 	"github.com/maskrapp/backend/internal/config"
 	"github.com/maskrapp/backend/internal/domains"
@@ -14,8 +18,9 @@ import (
 	"github.com/maskrapp/backend/internal/mailer"
 	"github.com/maskrapp/backend/internal/ratelimit"
 	"github.com/maskrapp/backend/internal/recaptcha"
-	"github.com/maskrapp/backend/internal/service"
+	"github.com/maskrapp/backend/internal/routes"
 	"github.com/maskrapp/backend/internal/utils"
+	"github.com/maskrapp/common/models"
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -64,9 +69,19 @@ func main() {
 	gCtx, cancel := global.WithCancel(global.NewContext(context.Background(), instances, cfg))
 	defer cancel()
 
-	service, err := service.New(gCtx)
+	err = instances.Gorm.AutoMigrate(&models.User{}, &models.Email{}, &models.EmailVerification{}, &models.Mask{}, &models.Provider{}, &models.AccountVerification{}, &models.Domain{})
 	if err != nil {
 		logrus.Panic(err)
 	}
-	service.Start()
+
+	fiber := fiber.New()
+	routes.Setup(gCtx, fiber)
+	shutdownChan := make(chan os.Signal, 1)
+	signal.Notify(shutdownChan, syscall.SIGINT, syscall.SIGTERM)
+
+	go fiber.Listen(":80")
+
+	<-shutdownChan
+	logrus.Info("gracefully shutting down...")
+	fiber.ShutdownWithTimeout(10 * time.Second)
 }
