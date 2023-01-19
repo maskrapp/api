@@ -53,7 +53,6 @@ func (b *backendServiceImpl) CheckMask(ctx context.Context, request *stubs.Check
 	return &stubs.CheckMaskResponse{Valid: result.Found}, nil
 }
 func (b *backendServiceImpl) GetMask(ctx context.Context, request *stubs.GetMaskRequest) (*stubs.GetMaskResponse, error) {
-	resp := &stubs.GetMaskResponse{}
 
 	split := strings.Split(request.MaskAddress, "@")
 	if len(split) != 2 {
@@ -64,12 +63,20 @@ func (b *backendServiceImpl) GetMask(ctx context.Context, request *stubs.GetMask
 		return nil, status.New(codes.InvalidArgument, "invalid mask domain").Err()
 	}
 
-	err := b.db.Table("masks").Select("masks.enabled, emails.email").Joins("inner join emails on emails.id = masks.forward_to").Where("masks.mask = ?", request.MaskAddress).Find(&resp).Error
+	var res struct {
+		Email   string
+		Enabled bool
+	}
+  
+	err := b.db.Table("masks").Select("masks.enabled, emails.email").Joins("inner join emails on emails.id = masks.forward_to").Where("masks.mask = ?", request.MaskAddress).Find(&res).Error
 	if err != nil {
 		logrus.Errorf("db error: %v", err)
 		return nil, status.New(codes.Unavailable, err.Error()).Err()
 	}
-	return resp, nil
+	return &stubs.GetMaskResponse{
+		Email:   res.Email,
+		Enabled: res.Enabled,
+	}, nil
 }
 func (b *backendServiceImpl) IncrementForwardedCount(ctx context.Context, request *stubs.IncrementForwardedCountRequest) (*emptypb.Empty, error) {
 
