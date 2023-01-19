@@ -8,7 +8,6 @@ require (
 	github.com/golang/protobuf v1.5.2
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.4.0
-	github.com/maskrapp/common v0.0.0-20230103145834-da13a72ca70c
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.5.0
 	google.golang.org/protobuf v1.28.1

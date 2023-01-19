@@ -8,7 +8,6 @@ import (
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
-	dbmodels "github.com/maskrapp/common/models"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -48,7 +47,7 @@ func ResendAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 				Success: false,
 				Message: "Captcha failed. Try again."})
 		}
-		verificationRecord := &dbmodels.AccountVerification{}
+		verificationRecord := &models.AccountVerification{}
 		db := ctx.Instances().Gorm
 		err = db.First(verificationRecord, "email = ?", body.Email).Error
 		if err != nil {
@@ -66,7 +65,7 @@ func ResendAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 		}
 
 		verificationCode := utils.GenerateCode(5)
-		err = db.Model(&dbmodels.AccountVerification{}).Where("email = ?", verificationRecord.Email).Updates(&dbmodels.AccountVerification{VerificationCode: verificationCode, ExpiresAt: time.Now().Add(5 * time.Minute).Unix()}).Error
+		err = db.Model(&models.AccountVerification{}).Where("email = ?", verificationRecord.Email).Updates(&models.AccountVerification{VerificationCode: verificationCode, ExpiresAt: time.Now().Add(5 * time.Minute).Unix()}).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

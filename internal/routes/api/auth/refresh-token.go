@@ -8,7 +8,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	dbmodels "github.com/maskrapp/common/models"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -44,7 +43,7 @@ func RefreshToken(ctx global.Context) func(*fiber.Ctx) error {
 				logrus.Error("redis error(refresh-token): ", err)
 			}
 		}
-		user := &dbmodels.User{}
+		user := &models.User{}
 		db := ctx.Instances().Gorm
 		err = db.First(user, "id = ?", claims.UserId).Error
 		if err != nil {

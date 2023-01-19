@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	dbmodels "github.com/maskrapp/common/models"
 )
 
 func DeleteMask(ctx global.Context) func(*fiber.Ctx) error {
@@ -27,7 +26,7 @@ func DeleteMask(ctx global.Context) func(*fiber.Ctx) error {
 		mask := strings.ToLower(val)
 		userID := c.Locals("user_id").(string)
 
-		err = ctx.Instances().Gorm.Delete(&dbmodels.Mask{}, "mask = ? AND user_id = ?", mask, userID).Error
+		err = ctx.Instances().Gorm.Delete(&models.Mask{}, "mask = ? AND user_id = ?", mask, userID).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

@@ -5,7 +5,6 @@ import (
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
-	dbModels "github.com/maskrapp/common/models"
 )
 
 type emailLoginBody struct {
@@ -39,7 +38,7 @@ func EmailLogin(ctx global.Context) func(*fiber.Ctx) error {
 				Message: "Captcha failed. Try again."})
 		}
 
-		user := &dbModels.User{}
+		user := &models.User{}
 		db := ctx.Instances().Gorm
 
 		err = db.Raw("select users.* from providers inner join users on providers.user_id = users.id where provider_name = 'email' and users.email = ?", body.Email).Limit(1).Scan(user).Error

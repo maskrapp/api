@@ -8,7 +8,6 @@ import (
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
-	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -64,7 +63,7 @@ func AddMask(ctx global.Context) func(*fiber.Ctx) error {
 				Message: "That mask already exists",
 			})
 		}
-		emailRecord := &dbmodels.Email{}
+		emailRecord := &models.Email{}
 
 		err = db.Find(emailRecord, "email = ? AND user_id = ?", b.Email, userID).Error
 		if err != nil {
@@ -87,7 +86,7 @@ func AddMask(ctx global.Context) func(*fiber.Ctx) error {
 				Message: "Email is not verified",
 			})
 		}
-		maskRecord := &dbmodels.Mask{
+		maskRecord := &models.Mask{
 			Mask:      fullEmail,
 			Enabled:   true,
 			ForwardTo: emailRecord.Id,

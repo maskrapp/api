@@ -9,7 +9,6 @@ import (
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
-	dbmodels "github.com/maskrapp/common/models"
 )
 
 func AddEmail(ctx global.Context) func(*fiber.Ctx) error {
@@ -60,7 +59,7 @@ func AddEmail(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		emailRecord := &dbmodels.Email{
+		emailRecord := &models.Email{
 			UserID:     userId,
 			Email:      email,
 			IsVerified: false,
@@ -75,7 +74,7 @@ func AddEmail(ctx global.Context) func(*fiber.Ctx) error {
 				Message: "Something went wrong!",
 			})
 		}
-		emailVerification := &dbmodels.EmailVerification{
+		emailVerification := &models.EmailVerification{
 			EmailID:          emailRecord.Id,
 			VerificationCode: utils.GenerateCode(5),
 			ExpiresAt:        time.Now().Add(30 * time.Minute).Unix(),

@@ -12,7 +12,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	dbmodels "github.com/maskrapp/common/models"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
@@ -45,11 +44,11 @@ func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
 				},
 			)
 		}
-		provider := &dbmodels.Provider{
+		provider := &models.Provider{
 			ID:           data.Id,
 			ProviderName: "google",
 		}
-		var user *dbmodels.User
+		var user *models.User
 		db := ctx.Instances().Gorm
 		err = db.First(provider).Error
 		if err != nil && err != gorm.ErrRecordNotFound {
@@ -69,7 +68,7 @@ func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
 					Message: "Something went wrong!",
 				})
 			}
-			err = db.Create(&dbmodels.Provider{
+			err = db.Create(&models.Provider{
 				ID:           data.Id,
 				ProviderName: "google",
 				UserID:       user.ID,
@@ -81,7 +80,7 @@ func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
 					Message: "Something went wrong!",
 				})
 			}
-			err = db.Create(&dbmodels.Email{
+			err = db.Create(&models.Email{
 				UserID:     user.ID,
 				IsPrimary:  true,
 				IsVerified: true,
@@ -95,7 +94,7 @@ func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
 				})
 			}
 		} else {
-			usr := &dbmodels.User{
+			usr := &models.User{
 				ID: provider.UserID,
 			}
 			err := db.First(usr).Error
@@ -119,13 +118,12 @@ func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
 	}
 }
 
-func createGoogleUser(db *gorm.DB, data *GoogleData) (*dbmodels.User, error) {
+func createGoogleUser(db *gorm.DB, data *GoogleData) (*models.User, error) {
 	uuid := uuid.New()
-	user := &dbmodels.User{
+	user := &models.User{
 		ID:       uuid.String(),
 		Role:     0,
 		Password: nil,
-		Name:     data.GivenName,
 		Email:    data.Email,
 	}
 	err := db.Create(user).Error

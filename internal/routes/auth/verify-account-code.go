@@ -4,7 +4,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -41,7 +40,7 @@ func VerifyAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 
 		db := ctx.Instances().Gorm
 
-		verificationRecord := &dbmodels.AccountVerification{}
+		verificationRecord := &models.AccountVerification{}
 		err = db.First(verificationRecord, "email = ? AND verification_code = ? ", body.Email, body.Code).Error
 
 		if err != nil {

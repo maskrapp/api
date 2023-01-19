@@ -7,7 +7,6 @@ import (
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
-	dbmodels "github.com/maskrapp/common/models"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
@@ -63,7 +62,7 @@ func CreateAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		verificationRecord := &dbmodels.AccountVerification{}
+		verificationRecord := &models.AccountVerification{}
 
 		err = db.First(verificationRecord, "email = ?", body.Email).Error
 
@@ -76,7 +75,7 @@ func CreateAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 
 		if err == gorm.ErrRecordNotFound {
 			verificationCode := utils.GenerateCode(5)
-			err = db.Create(&dbmodels.AccountVerification{Email: body.Email, VerificationCode: verificationCode, ExpiresAt: time.Now().Add(time.Minute * 5).Unix()}).Error
+			err = db.Create(&models.AccountVerification{Email: body.Email, VerificationCode: verificationCode, ExpiresAt: time.Now().Add(time.Minute * 5).Unix()}).Error
 			if err != nil {
 				return c.Status(500).JSON(&models.APIResponse{
 					Success: false,
@@ -94,7 +93,7 @@ func CreateAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 		} else {
 			if time.Now().Unix() > verificationRecord.ExpiresAt {
 				verificationCode := utils.GenerateCode(5)
-				err = db.Model(&dbmodels.AccountVerification{}).Where("email = ?", verificationRecord.Email).Updates(&dbmodels.AccountVerification{VerificationCode: verificationCode, ExpiresAt: time.Now().Add(5 * time.Minute).Unix()}).Error
+				err = db.Model(&models.AccountVerification{}).Where("email = ?", verificationRecord.Email).Updates(&models.AccountVerification{VerificationCode: verificationCode, ExpiresAt: time.Now().Add(5 * time.Minute).Unix()}).Error
 				if err != nil {
 					return c.Status(500).JSON(&models.APIResponse{
 						Success: false,

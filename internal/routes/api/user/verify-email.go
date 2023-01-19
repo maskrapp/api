@@ -7,7 +7,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	dbmodels "github.com/maskrapp/common/models"
 )
 
 func VerifyEmail(ctx global.Context) func(*fiber.Ctx) error {
@@ -31,7 +30,7 @@ func VerifyEmail(ctx global.Context) func(*fiber.Ctx) error {
 		}
 
 		userID := c.Locals("user_id").(string)
-		emailModel := &dbmodels.Email{}
+		emailModel := &models.Email{}
 		db := ctx.Instances().Gorm
 		err = db.Find(emailModel, "user_id = ? AND email = ? AND is_verified = false", userID, email).Error
 		if err != nil {
@@ -41,7 +40,7 @@ func VerifyEmail(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		verificationModel := &dbmodels.EmailVerification{}
+		verificationModel := &models.EmailVerification{}
 
 		err = db.Find(verificationModel, "email_id = ? AND verification_code = ?", emailModel.Id, code).Error
 
@@ -59,7 +58,7 @@ func VerifyEmail(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		err = db.Delete(&dbmodels.EmailVerification{}, "id", verificationModel.Id).Error
+		err = db.Delete(&models.EmailVerification{}, "id", verificationModel.Id).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
@@ -68,7 +67,7 @@ func VerifyEmail(ctx global.Context) func(*fiber.Ctx) error {
 		}
 		values := make(map[string]interface{})
 		values["is_verified"] = true
-		err = db.Model(&dbmodels.Email{}).Where("id = ?", verificationModel.EmailID).Updates(values).Error
+		err = db.Model(&models.Email{}).Where("id = ?", verificationModel.EmailID).Updates(values).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,

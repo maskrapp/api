@@ -6,7 +6,6 @@ import (
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
-	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -50,7 +49,7 @@ func CreateAccount(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		verificationRecord := &dbmodels.AccountVerification{}
+		verificationRecord := &models.AccountVerification{}
 		db := ctx.Instances().Gorm
 		err = db.First(verificationRecord, "email = ? AND verification_code = ? ", body.Email, body.Code).Error
 
@@ -67,7 +66,7 @@ func CreateAccount(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		err = db.Delete(&dbmodels.AccountVerification{}, "email = ?", body.Email).Error
+		err = db.Delete(&models.AccountVerification{}, "email = ?", body.Email).Error
 
 		//TODO: why are we returning here?
 		if err != nil {
@@ -85,7 +84,7 @@ func CreateAccount(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		user := &dbmodels.User{ID: uuid.NewString(), Name: "", Role: 0, Password: &hashedPassword, Email: body.Email}
+		user := &models.User{ID: uuid.NewString(), Role: 0, Password: &hashedPassword, Email: body.Email}
 		err = db.Create(user).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{
@@ -94,7 +93,7 @@ func CreateAccount(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		provider := &dbmodels.Provider{ID: uuid.NewString(), ProviderName: "email", UserID: user.ID}
+		provider := &models.Provider{ID: uuid.NewString(), ProviderName: "email", UserID: user.ID}
 
 		err = db.Create(provider).Error
 		if err != nil {
@@ -104,7 +103,7 @@ func CreateAccount(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		err = db.Create(&dbmodels.Email{
+		err = db.Create(&models.Email{
 			UserID:     user.ID,
 			IsPrimary:  true,
 			IsVerified: true,

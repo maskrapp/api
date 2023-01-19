@@ -8,7 +8,6 @@ import (
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
 	"github.com/maskrapp/backend/internal/utils"
-	dbmodels "github.com/maskrapp/common/models"
 )
 
 func RequestCode(ctx global.Context) func(*fiber.Ctx) error {
@@ -28,7 +27,7 @@ func RequestCode(ctx global.Context) func(*fiber.Ctx) error {
 
 		userID := c.Locals("user_id").(string)
 
-		emailRecord := &dbmodels.Email{}
+		emailRecord := &models.Email{}
 		db := ctx.Instances().Gorm
 		err = db.Find(emailRecord, "email = ? AND user_id = ? AND is_verified = false", email, userID).Error
 
@@ -38,7 +37,7 @@ func RequestCode(ctx global.Context) func(*fiber.Ctx) error {
 				Message: "Could not find email",
 			})
 		}
-		verification := &dbmodels.EmailVerification{
+		verification := &models.EmailVerification{
 			EmailID:          emailRecord.Id,
 			VerificationCode: utils.GenerateCode(5),
 			ExpiresAt:        time.Now().Add(5 * time.Minute).Unix(),

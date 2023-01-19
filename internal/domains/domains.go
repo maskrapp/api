@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maskrapp/common/models"
+	"github.com/maskrapp/backend/internal/models"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )

@@ -6,7 +6,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/backend/internal/global"
 	"github.com/maskrapp/backend/internal/models"
-	dbmodels "github.com/maskrapp/common/models"
 	"gorm.io/gorm"
 )
 
@@ -33,7 +32,7 @@ func SetMaskStatus(ctx global.Context) func(*fiber.Ctx) error {
 			"enabled": b.Value,
 		}
 
-		err = ctx.Instances().Gorm.Model(&dbmodels.Mask{}).Where("mask = ? and user_id = ?", b.Mask, userID).Updates(values).Error
+		err = ctx.Instances().Gorm.Model(&models.Mask{}).Where("mask = ? and user_id = ?", b.Mask, userID).Updates(values).Error
 
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
