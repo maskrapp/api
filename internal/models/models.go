@@ -13,7 +13,6 @@ type Provider struct {
 
 type User struct {
 	ID           string    `json:"id" gorm:"primaryKey"`
-	DisplayName  string    `json:"name" gorm:"not null"`
 	Role         int       `json:"role" gorm:"not null"`
 	Password     *string   `json:"-"`
 	Email        string    `json:"email" gorm:"not null"`
