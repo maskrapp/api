@@ -17,6 +17,7 @@ import (
 	"github.com/maskrapp/backend/internal/domains"
 	"github.com/maskrapp/backend/internal/global"
 	grpc_impl "github.com/maskrapp/backend/internal/grpc"
+	"github.com/maskrapp/backend/internal/healthcheck"
 	"github.com/maskrapp/backend/internal/jwt"
 	"github.com/maskrapp/backend/internal/mailer"
 	"github.com/maskrapp/backend/internal/models"
@@ -91,18 +92,28 @@ func main() {
 		logrus.Panic(err)
 	}
 
-  logrus.Infof("listening for GRPC requests on port: %v", cfg.GRPC.Port)
+	healthCheckSrv := healthcheck.New(gCtx)
+
+	logrus.Infof("listening for GRPC requests on port: %v", cfg.GRPC.Port)
 
 	shutdownChan := make(chan os.Signal, 1)
 	signal.Notify(shutdownChan, syscall.SIGINT, syscall.SIGTERM)
 
 	go grpcServer.Serve(ln)
 	go fiber.Listen(":80")
+	go healthCheckSrv.ListenAndServe()
 
 	<-shutdownChan
 	logrus.Info("gracefully shutting down...")
 	wg := sync.WaitGroup{}
-	wg.Add(2)
+	wg.Add(3)
+
+	go func() {
+		defer wg.Done()
+		c, cancel := context.WithTimeout(context.Background(), time.Second * 10)
+		defer cancel()
+		healthCheckSrv.Shutdown(c)
+	}()
 	go func() {
 		defer wg.Done()
 		fiber.ShutdownWithTimeout(time.Second * 10)
