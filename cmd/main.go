@@ -110,13 +110,13 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		c, cancel := context.WithTimeout(context.Background(), time.Second * 10)
+		c, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
 		defer cancel()
 		healthCheckSrv.Shutdown(c)
 	}()
 	go func() {
 		defer wg.Done()
-		fiber.ShutdownWithTimeout(time.Second * 10)
+		fiber.ShutdownWithTimeout(10 * time.Second)
 	}()
 	go func() {
 		defer wg.Done()
