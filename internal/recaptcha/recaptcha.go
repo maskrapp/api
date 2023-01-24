@@ -14,7 +14,7 @@ type Recaptcha struct {
 }
 
 func New(secret string) *Recaptcha {
-	return &Recaptcha{req.C().DevMode(), secret}
+	return &Recaptcha{req.C(), secret}
 }
 
 type responseBody struct {
