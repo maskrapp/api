@@ -44,6 +44,8 @@ spec:
           env:
             - name: PRODUCTION
               value: "true"
+            - name: MAIL_ADDRESS
+              value: ""
             - name: MAIL_TOKEN
               valueFrom:
                 secretKeyRef:

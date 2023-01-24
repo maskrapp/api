@@ -22,8 +22,9 @@ type Config struct {
 		Secret string
 	}
 	ZeptoMail struct {
-		EmailToken  string
-		TemplateKey string
+		EmailToken   string
+		TemplateKey  string
+		EmailAddress string
 	}
 	JWT struct {
 		Secret string
@@ -58,6 +59,7 @@ func New() *Config {
 
 	cfg.ZeptoMail.EmailToken = os.Getenv("MAIL_TOKEN")
 	cfg.ZeptoMail.TemplateKey = os.Getenv("MAIL_TEMPLATE_KEY")
+	cfg.ZeptoMail.EmailAddress = os.Getenv("MAIL_ADDRESS")
 
 	cfg.JWT.Secret = os.Getenv("SECRET_KEY")
 
@@ -67,10 +69,9 @@ func New() *Config {
 
 	cfg.Logger.LogLevel = getOrDefault("LOG_LEVEL", "debug")
 
-  cfg.GRPC.Port = getOrDefault("GRPC_PORT", "50051")
+	cfg.GRPC.Port = getOrDefault("GRPC_PORT", "50051")
 
 	cfg.Production = getOrDefault("PRODUCTION", "true") == "true"
-
 
 	return cfg
 }

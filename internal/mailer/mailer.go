@@ -6,22 +6,25 @@ import (
 	"time"
 
 	"github.com/imroc/req/v3"
+	"github.com/maskrapp/backend/internal/config"
 )
 
 type Mailer struct {
-	httpClient  *req.Client
-	token       string
-	templateKey string
-	production  bool
+	httpClient   *req.Client
+	token        string
+	templateKey  string
+	emailAddress string
+	production   bool
 }
 
-func New(token string, templateKey string, production bool) *Mailer {
+func New(config *config.Config) *Mailer {
 	httpClient := req.C()
 	return &Mailer{
-		httpClient:  httpClient,
-		token:       token,
-		templateKey: templateKey,
-		production:  production,
+		httpClient:   httpClient,
+		token:        config.ZeptoMail.EmailToken,
+		templateKey:  config.ZeptoMail.TemplateKey,
+		emailAddress: config.ZeptoMail.EmailAddress,
+		production:   config.Production,
 	}
 }
 
@@ -30,10 +33,10 @@ func (m *Mailer) createJSON(email, code string) ([]byte, error) {
 
 	reqMap := make(map[string]interface{})
 	reqMap["mail_template_key"] = m.templateKey
-	reqMap["bounce_address"] = "bounce@bounce.maskr.app"
+	reqMap["bounce_address"] = "bounce@bounce.maskr.org"
 	reqMap["from"] = map[string]string{
-		"address": "no-reply@maskr.app",
-		"from":    "maskr.app",
+		"address": m.emailAddress,
+		"from":    "no-reply",
 	}
 	var recipients []interface{}
 	recipient := map[string]interface{}{
@@ -89,7 +92,7 @@ func (m *Mailer) SendVerifyMail(email, code string) error {
 // SendUserVerificationMail is used when a user creates their account.
 func (m *Mailer) SendUserVerificationMail(email, code string) error {
 
-  //TODO: perhaps we can use a different template?
+	//TODO: perhaps we can use a different template?
 
 	data, err := m.createJSON(email, code)
 	if err != nil {

@@ -66,7 +66,7 @@ func main() {
 		RateLimiter: ratelimit.New(redis, 50, map[string]int{}),
 		Recaptcha:   recaptcha.New(cfg.Recaptcha.Secret),
 		JWT:         jwt.New(cfg.JWT.Secret, 5*time.Minute, 24*time.Hour),
-		Mailer:      mailer.New(cfg.ZeptoMail.EmailToken, cfg.ZeptoMail.TemplateKey, cfg.Production),
+		Mailer:      mailer.New(cfg),
 		Domains:     domains.New(db, 10*time.Minute),
 	}
 
