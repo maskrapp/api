@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: api
+  namespace: maskr
+  annotations:
+    nginx.ingress.kubernetes.io/limit-rpm: "100"
+spec:
+  rules:
+  - host: api.maskr.app
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: backend
+            port:
+              number: 80
+  ingressClassName: nginx
+  tls:
+    - hosts: 
+        - api.maskr.app
+      secretName: maskr-app-tls

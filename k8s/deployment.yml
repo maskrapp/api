@@ -1,0 +1,95 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: backend
+  namespace: maskr
+  labels:
+    app: backend
+spec:
+  selector:
+    matchLabels:
+      app: backend
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      containers:
+        - name: backend
+          image: ghcr.io/maskrapp/backend:latest
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+            - name: grpc
+              containerPort: 50051
+            - name: health
+              containerPort: 9000
+          livenessProbe:
+            tcpSocket:
+              port: health
+            initialDelaySeconds: 20
+            timeoutSeconds: 8
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: health
+            initialDelaySeconds: 5
+            timeoutSeconds: 8
+            periodSeconds: 10
+            successThreshold: 1
+            failureThreshold: 5
+          env:
+            - name: PRODUCTION
+              value: "true"
+            - name: MAIL_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: "backend-secrets"
+                  key: MAIL_TOKEN
+            - name: MAIL_TEMPLATE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "backend-secrets"
+                  key: MAIL_TEMPLATE_KEY
+            - name: SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: "backend-secrets"
+                  key: SECRET_KEY
+            - name: POSTGRES_USER
+              value: ""
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "db-postgresql"
+                  key: password
+            - name: POSTGRES_HOST
+              value: "db-postgresql"
+            - name: POSTGRES_DATABASE
+              value: "backend"
+            - name: CAPTCHA_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: "backend-secrets"
+                  key: "CAPTCHA_SECRET"
+            - name: GOOGLE_CLIENT_ID
+              value: ""
+            - name: GOOGLE_REDIRECT
+              value: ""
+            - name: GOOGLE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: "backend-secrets"
+                  key: GOOGLE_SECRET
+            - name: REDIS_HOST
+              value: ""
+            - name: REDIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: "redis"
+                  key: "redis-password"
+      imagePullSecrets:
+        - name: gh-docker
