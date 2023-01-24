@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: backend
-          image: ghcr.io/maskrapp/backend:latest
+          image: ghcr.io/maskrapp/backend:master
           ports:
             - name: http
               containerPort: 80
