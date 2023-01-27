@@ -73,7 +73,7 @@ func main() {
 	gCtx, cancel := global.WithCancel(global.NewContext(context.Background(), instances, cfg))
 	defer cancel()
 
-	err = instances.Gorm.AutoMigrate(&models.User{}, &models.Email{}, &models.EmailVerification{}, &models.Mask{}, &models.Provider{}, &models.AccountVerification{}, &models.Domain{})
+	err = instances.Gorm.AutoMigrate(&models.User{}, models.Email{}, models.EmailVerification{}, models.Mask{}, models.Provider{}, models.AccountVerification{}, models.Domain{}, models.PasswordResetVerification{})
 	if err != nil {
 		logrus.Panic(err)
 	}
@@ -110,7 +110,7 @@ func main() {
 
 	go func() {
 		defer wg.Done()
-		c, cancel := context.WithTimeout(context.Background(), 10 * time.Second)
+		c, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
 		healthCheckSrv.Shutdown(c)
 	}()

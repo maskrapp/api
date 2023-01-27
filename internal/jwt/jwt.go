@@ -106,3 +106,40 @@ func (j *JWTHandler) CreatePair(userID string, version int, provider string) (*P
 		AccessToken:  accessToken,
 	}, nil
 }
+
+type PasswordResetTokenClaims struct {
+	UserId  string `json:"user_id"`
+	Version int    `json:"version"`
+	jwt.StandardClaims
+}
+
+func (j *JWTHandler) GeneratePasswordResetToken(userId string, version int) (string, error) {
+	expiresAt := time.Now().Add(5 * time.Minute).Unix()
+	claims := PasswordResetTokenClaims{
+		UserId:  userId,
+		Version: version,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: expiresAt,
+			Subject:   userId,
+		},
+	}
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(j.secret))
+	if err != nil {
+		return "", err
+	}
+	return tokenString, nil
+}
+
+func (j *JWTHandler) ValidatePasswordResetToken(tokenString string) (*PasswordResetTokenClaims, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &PasswordResetTokenClaims{}, func(t *jwt.Token) (interface{}, error) {
+		return []byte(j.secret), nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	if claims, ok := token.Claims.(*PasswordResetTokenClaims); ok && token.Valid {
+		return claims, nil
+	}
+	return nil, err
+}

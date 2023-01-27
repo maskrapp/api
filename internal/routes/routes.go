@@ -30,6 +30,10 @@ func Setup(ctx global.Context, app *fiber.App) {
 	authGroup.Post("create-account", middleware.EmailRateLimit(ctx, 5, time.Minute, auth.CreateAccount(ctx)))
 	authGroup.Post("email-login", middleware.EmailRateLimit(ctx, 7, time.Minute, auth.EmailLogin(ctx)))
 
+	authGroup.Post("create-password-code", middleware.EmailRateLimit(ctx, 5, 5*time.Minute, auth.CreatePasswordCode(ctx)))
+	authGroup.Post("verify-password-code", middleware.EmailRateLimit(ctx, 5, 5*time.Minute, auth.VerifyPasswordCode(ctx)))
+	authGroup.Post("change-password", auth.ChangePassword(ctx))
+
 	apiGroup := app.Group("/api")
 
 	apiUserGroup := apiGroup.Group("/user")

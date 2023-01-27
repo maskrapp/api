@@ -48,6 +48,16 @@ type EmailVerification struct {
 	ExpiresAt        int64  `json:"expires_at"`
 }
 
+type PasswordResetVerification struct {
+	ID               int `gorm:"primaryKey"`
+	User             User
+	UserID           string
+	VerificationCode string
+	ExpiresAt        int64
+	CreatedAt        time.Time `json:"-"`
+	UpdatedAt        time.Time `json:"-"`
+}
+
 type Mask struct {
 	Mask              string `json:"mask" gorm:"primaryKey"`
 	Enabled           bool   `json:"enabled"`
