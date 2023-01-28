@@ -17,7 +17,6 @@ type resendAccountCodeBody struct {
 	CaptchaToken string `json:"captcha_token"`
 }
 
-// TODO: rate limit this
 func ResendAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 
