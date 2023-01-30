@@ -91,8 +91,8 @@ github.com/hashicorp/errwrap v1.1.0/go.mod h1:YH+1FKiLXxHSkmPseP+kNlulaMuP3n2brv
 github.com/hashicorp/go-multierror v1.1.1 h1:H5DkEtf6CXdFp0N0Em5UCwQpXMWke8IA0+lD48awMYo=
 github.com/hashicorp/go-multierror v1.1.1/go.mod h1:iw975J/qwKPdAO1clOe2L8331t/9/fmwbPZ6JB6eMoM=
 github.com/hpcloud/tail v1.0.0/go.mod h1:ab1qPbhIpdTxEkNHXyeSf5vhxWSCs/tWer42PpOxQnU=
-github.com/imroc/req/v3 v3.30.0 h1:4iSXgIQfh/3N7JK9Lt7S0q3n/ZvuGICYwV3iv/MWY1M=
-github.com/imroc/req/v3 v3.30.0/go.mod h1:DKtNwSxMdpqZKJ6neBw8VwRioq78uwmQB4ynQEXNNUk=
+github.com/imroc/req/v3 v3.31.0 h1:IwAlsQEuzkAMjTJ9CtDuXoCf3eKpOPcPGko6xJKEkVo=
+github.com/imroc/req/v3 v3.31.0/go.mod h1:DKtNwSxMdpqZKJ6neBw8VwRioq78uwmQB4ynQEXNNUk=
 github.com/jackc/pgpassfile v1.0.0 h1:/6Hmqy13Ss2zCq62VdNG8tM1wchn8zjSGOBJ6icpsIM=
 github.com/jackc/pgpassfile v1.0.0/go.mod h1:CEx0iS5ambNFdcRtxPj5JhEz+xB6uRky5eyVu/W2HEg=
 github.com/jackc/pgservicefile v0.0.0-20200714003250-2b9c44734f2b/go.mod h1:vsD4gTJCa9TptPL8sPkXrLZ+hDuNrZCnj29CQpr4X1E=
