@@ -40,7 +40,7 @@ func IsValidPassword(password string) bool {
 			hasUpperCase = true
 		case unicode.IsLower(c):
 			hasLowercase = true
-		case c == '#' || c == '|' || unicode.IsSpace(c):
+		case unicode.IsSpace(c):
 			return false
 		case unicode.IsPunct(c) || unicode.IsSymbol(c):
 			hasSpecial = true
