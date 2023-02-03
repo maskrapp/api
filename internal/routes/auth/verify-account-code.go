@@ -1,11 +1,9 @@
 package auth
 
 import (
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/api/internal/global"
 	"github.com/maskrapp/api/internal/models"
-	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 )
 
@@ -42,12 +40,8 @@ func VerifyAccountCode(ctx global.Context) func(*fiber.Ctx) error {
 
 		db := ctx.Instances().Gorm
 
-		logrus.Info("here")
-
 		verificationRecord := &models.AccountVerification{}
 		err = db.First(verificationRecord, "email = ? AND verification_code = ? ", body.Email, body.Code).Error
-
-		spew.Dump(verificationRecord)
 
 		if err != nil {
 			if err == gorm.ErrRecordNotFound {
