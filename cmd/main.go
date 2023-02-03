@@ -21,7 +21,7 @@ import (
 	"github.com/maskrapp/api/internal/jwt"
 	"github.com/maskrapp/api/internal/mailer"
 	"github.com/maskrapp/api/internal/models"
-	backend_grpc "github.com/maskrapp/api/internal/pb/backend/v1"
+	main_api "github.com/maskrapp/api/internal/pb/main_api/v1"
 	"github.com/maskrapp/api/internal/ratelimit"
 	"github.com/maskrapp/api/internal/recaptcha"
 	"github.com/maskrapp/api/internal/routes"
@@ -84,7 +84,7 @@ func main() {
 	grpcServer := grpc.NewServer(grpc.KeepaliveParams(keepalive.ServerParameters{
 		MaxConnectionAge: 1 * time.Minute,
 	}))
-	backend_grpc.RegisterBackendServiceServer(grpcServer, grpc_impl.NewBackendService(gCtx))
+	main_api.RegisterMainAPIServiceServer(grpcServer, grpc_impl.NewMainAPIService(gCtx))
 
 	address := fmt.Sprintf(":%v", cfg.GRPC.Port)
 	ln, err := net.Listen("tcp", address)

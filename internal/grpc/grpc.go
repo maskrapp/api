@@ -7,7 +7,7 @@ import (
 	"github.com/golang/protobuf/ptypes/empty"
 	"github.com/maskrapp/api/internal/domains"
 	"github.com/maskrapp/api/internal/global"
-	stubs "github.com/maskrapp/api/internal/pb/backend/v1"
+	stubs "github.com/maskrapp/api/internal/pb/main_api/v1"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,20 +15,20 @@ import (
 	"gorm.io/gorm"
 )
 
-type backendServiceImpl struct {
+type mainApiServiceImpl struct {
 	db      *gorm.DB
 	domains *domains.Domains
-	stubs.UnimplementedBackendServiceServer
+	stubs.UnimplementedMainAPIServiceServer
 }
 
-func NewBackendService(ctx global.Context) stubs.BackendServiceServer {
-	return &backendServiceImpl{
+func NewMainAPIService(ctx global.Context) stubs.MainAPIServiceServer {
+	return &mainApiServiceImpl{
 		db:      ctx.Instances().Gorm,
 		domains: ctx.Instances().Domains,
 	}
 }
 
-func (b *backendServiceImpl) CheckMask(ctx context.Context, request *stubs.CheckMaskRequest) (*stubs.CheckMaskResponse, error) {
+func (b *mainApiServiceImpl) CheckMask(ctx context.Context, request *stubs.CheckMaskRequest) (*stubs.CheckMaskResponse, error) {
 	split := strings.Split(request.MaskAddress, "@")
 	if len(split) != 2 {
 		return nil, status.New(codes.InvalidArgument, "invalid mask address").Err()
@@ -52,7 +52,7 @@ func (b *backendServiceImpl) CheckMask(ctx context.Context, request *stubs.Check
 	}
 	return &stubs.CheckMaskResponse{Valid: result.Found}, nil
 }
-func (b *backendServiceImpl) GetMask(ctx context.Context, request *stubs.GetMaskRequest) (*stubs.GetMaskResponse, error) {
+func (b *mainApiServiceImpl) GetMask(ctx context.Context, request *stubs.GetMaskRequest) (*stubs.GetMaskResponse, error) {
 
 	split := strings.Split(request.MaskAddress, "@")
 	if len(split) != 2 {
@@ -78,7 +78,7 @@ func (b *backendServiceImpl) GetMask(ctx context.Context, request *stubs.GetMask
 		Enabled: res.Enabled,
 	}, nil
 }
-func (b *backendServiceImpl) IncrementForwardedCount(ctx context.Context, request *stubs.IncrementForwardedCountRequest) (*emptypb.Empty, error) {
+func (b *mainApiServiceImpl) IncrementForwardedCount(ctx context.Context, request *stubs.IncrementForwardedCountRequest) (*emptypb.Empty, error) {
 
 	split := strings.Split(request.MaskAddress, "@")
 	if len(split) != 2 {
@@ -98,7 +98,7 @@ func (b *backendServiceImpl) IncrementForwardedCount(ctx context.Context, reques
 
 	return &emptypb.Empty{}, nil
 }
-func (b *backendServiceImpl) IncrementReceivedCount(ctx context.Context, request *stubs.IncrementReceivedCountRequest) (*emptypb.Empty, error) {
+func (b *mainApiServiceImpl) IncrementReceivedCount(ctx context.Context, request *stubs.IncrementReceivedCountRequest) (*emptypb.Empty, error) {
 
 	split := strings.Split(request.MaskAddress, "@")
 	if len(split) != 2 {
