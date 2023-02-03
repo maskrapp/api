@@ -92,6 +92,7 @@ func main() {
 		logrus.Panic(err)
 	}
 
+	spew.Dump(grpcServer.GetServiceInfo())
 	healthCheckSrv := healthcheck.New(gCtx)
 
 	logrus.Infof("listening for GRPC requests on port: %v", cfg.GRPC.Port)
