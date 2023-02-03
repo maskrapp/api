@@ -5,12 +5,12 @@ import (
 	"time"
 
 	"github.com/go-redis/redis/v9"
-	"github.com/maskrapp/backend/internal/config"
-	"github.com/maskrapp/backend/internal/domains"
-	"github.com/maskrapp/backend/internal/jwt"
-	"github.com/maskrapp/backend/internal/mailer"
-	"github.com/maskrapp/backend/internal/ratelimit"
-	"github.com/maskrapp/backend/internal/recaptcha"
+	"github.com/maskrapp/api/internal/config"
+	"github.com/maskrapp/api/internal/domains"
+	"github.com/maskrapp/api/internal/jwt"
+	"github.com/maskrapp/api/internal/mailer"
+	"github.com/maskrapp/api/internal/ratelimit"
+	"github.com/maskrapp/api/internal/recaptcha"
 	"gorm.io/gorm"
 )
 
@@ -21,7 +21,7 @@ type Instances struct {
 	Recaptcha   *recaptcha.Recaptcha
 	JWT         *jwt.JWTHandler
 	Mailer      *mailer.Mailer
-  Domains *domains.Domains
+	Domains     *domains.Domains
 }
 
 type Context interface {

@@ -1,4 +1,4 @@
-module github.com/maskrapp/backend
+module github.com/maskrapp/api
 
 go 1.19
 

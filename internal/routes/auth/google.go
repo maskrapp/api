@@ -10,8 +10,8 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/maskrapp/backend/internal/global"
-	"github.com/maskrapp/backend/internal/models"
+	"github.com/maskrapp/api/internal/global"
+	"github.com/maskrapp/api/internal/models"
 	"github.com/sirupsen/logrus"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"

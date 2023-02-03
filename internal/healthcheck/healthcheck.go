@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/maskrapp/backend/internal/global"
+	"github.com/maskrapp/api/internal/global"
 	"github.com/sirupsen/logrus"
 )
 
@@ -20,7 +20,7 @@ func New(ctx global.Context) http.Server {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
-			c, cancel := context.WithTimeout(context.Background(), time.Second * 10)
+			c, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer cancel()
 			err := ctx.Instances().Redis.Ping(c).Err()
 			if err != nil {
@@ -38,7 +38,7 @@ func New(ctx global.Context) http.Server {
 				dbErr = true
 				return
 			}
-			c, cancel := context.WithTimeout(context.Background(), time.Second * 10)
+			c, cancel := context.WithTimeout(context.Background(), time.Second*10)
 			defer cancel()
 			if err := db.PingContext(c); err != nil {
 				logrus.Errorf("db healthcheck failed: %v", err)

@@ -3,7 +3,7 @@ package utils_test
 import (
 	"testing"
 
-	"github.com/maskrapp/backend/internal/utils"
+	"github.com/maskrapp/api/internal/utils"
 	"github.com/stretchr/testify/assert"
 )
 

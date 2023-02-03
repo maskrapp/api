@@ -3,9 +3,9 @@ package auth
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/google/uuid"
-	"github.com/maskrapp/backend/internal/global"
-	"github.com/maskrapp/backend/internal/models"
-	"github.com/maskrapp/backend/internal/utils"
+	"github.com/maskrapp/api/internal/global"
+	"github.com/maskrapp/api/internal/models"
+	"github.com/maskrapp/api/internal/utils"
 	"gorm.io/gorm"
 )
 

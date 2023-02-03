@@ -2,7 +2,7 @@ package user
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/maskrapp/backend/internal/global"
+	"github.com/maskrapp/api/internal/global"
 )
 
 func Domains(ctx global.Context) func(*fiber.Ctx) error {

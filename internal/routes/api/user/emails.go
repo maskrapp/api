@@ -2,8 +2,8 @@ package user
 
 import (
 	"github.com/gofiber/fiber/v2"
-	"github.com/maskrapp/backend/internal/global"
-	"github.com/maskrapp/backend/internal/models"
+	"github.com/maskrapp/api/internal/global"
+	"github.com/maskrapp/api/internal/models"
 )
 
 func Emails(ctx global.Context) func(*fiber.Ctx) error {

@@ -5,15 +5,16 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
-	"github.com/maskrapp/backend/internal/global"
-	"github.com/maskrapp/backend/internal/middleware"
-	apiauth "github.com/maskrapp/backend/internal/routes/api/auth"
-	"github.com/maskrapp/backend/internal/routes/api/user"
-	"github.com/maskrapp/backend/internal/routes/auth"
+	"github.com/maskrapp/api/internal/global"
+	"github.com/maskrapp/api/internal/middleware"
+	apiauth "github.com/maskrapp/api/internal/routes/api/auth"
+	"github.com/maskrapp/api/internal/routes/api/user"
+	"github.com/maskrapp/api/internal/routes/auth"
 )
 
 func Setup(ctx global.Context, app *fiber.App) {
 	app.Use(cors.New())
+
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
 	})

@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/imroc/req/v3"
-	"github.com/maskrapp/backend/internal/config"
+	"github.com/maskrapp/api/internal/config"
 )
 
 type Mailer struct {

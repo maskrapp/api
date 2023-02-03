@@ -5,9 +5,9 @@ import (
 	"strings"
 
 	"github.com/golang/protobuf/ptypes/empty"
-	"github.com/maskrapp/backend/internal/domains"
-	"github.com/maskrapp/backend/internal/global"
-	stubs "github.com/maskrapp/backend/internal/pb/backend/v1"
+	"github.com/maskrapp/api/internal/domains"
+	"github.com/maskrapp/api/internal/global"
+	stubs "github.com/maskrapp/api/internal/pb/backend/v1"
 	"github.com/sirupsen/logrus"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -67,7 +67,7 @@ func (b *backendServiceImpl) GetMask(ctx context.Context, request *stubs.GetMask
 		Email   string
 		Enabled bool
 	}
-  
+
 	err := b.db.Table("masks").Select("masks.enabled, emails.email").Joins("inner join emails on emails.id = masks.forward_to").Where("masks.mask = ?", request.MaskAddress).Find(&res).Error
 	if err != nil {
 		logrus.Errorf("db error: %v", err)
