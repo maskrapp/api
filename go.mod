@@ -3,7 +3,6 @@ module github.com/maskrapp/api
 go 1.19
 
 require (
-	github.com/davecgh/go-spew v1.1.1
 	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/gofiber/fiber/v2 v2.41.0
 	github.com/golang/protobuf v1.5.2
@@ -11,16 +10,16 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/stretchr/testify v1.8.1
 	golang.org/x/crypto v0.5.0
+	golang.org/x/oauth2 v0.0.0-20220622183110-fd043fe589d2
 	google.golang.org/protobuf v1.28.1
 	gorm.io/driver/postgres v1.4.6
-	gorm.io/gorm v1.24.4
+	gorm.io/gorm v1.24.5
 )
 
 require (
-	cloud.google.com/go/compute v1.9.0 // indirect
-	cloud.google.com/go/compute/metadata v0.2.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/cheekybits/genny v1.0.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
 	github.com/fsnotify/fsnotify v1.5.4 // indirect
 	github.com/go-task/slim-sprig v0.0.0-20210107165309-348f09dbbbc0 // indirect
