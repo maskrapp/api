@@ -42,10 +42,8 @@ func (r *Recaptcha) ValidateCaptchaToken(token, action string) bool {
 			return !resp.IsSuccess()
 		}).
 		SetHeaders(headers).
-    SetResult(responseBody).
+		SetResult(responseBody).
 		Post(url)
-
-
 
 	if err != nil {
 		logrus.Errorf("http request failed: %v", err)
@@ -64,10 +62,6 @@ func (r *Recaptcha) ValidateCaptchaToken(token, action string) bool {
 	if !responseBody.Success || responseBody.Action != action {
 		return false
 	}
-
 	//according to https://stackoverflow.com/a/52170635, anything below 0.5 is malicious
-	if responseBody.Score < 0.5 {
-		return false
-	}
-	return true
+	return responseBody.Score >= 0.5
 }
