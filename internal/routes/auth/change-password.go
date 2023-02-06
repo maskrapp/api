@@ -82,7 +82,7 @@ func ChangePassword(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		if utils.CompareHash(body.Password, *userRecord.Password) {
+		if utils.CompareHash(body.Password, userRecord.Password) {
 			return c.Status(500).JSON(&models.APIResponse{
 				Success: false,
 				Message: "You cannot use your previous password",
@@ -100,7 +100,7 @@ func ChangePassword(ctx global.Context) func(*fiber.Ctx) error {
 
 		updatedModel := &models.User{
 			TokenVersion: userRecord.TokenVersion + 1, //Invalidates every active session
-			Password:     &passwordHash,
+			Password:     passwordHash,
 		}
 
 		err = db.Model(&models.User{}).Where("id = ?", userRecord.ID).Updates(updatedModel).Error

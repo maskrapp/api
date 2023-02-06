@@ -14,7 +14,7 @@ type Provider struct {
 type User struct {
 	ID           string    `json:"id" gorm:"primaryKey"`
 	Role         int       `json:"role" gorm:"not null"`
-	Password     *string   `json:"-"`
+	Password     string    `json:"-"`
 	Email        string    `json:"email" gorm:"not null"`
 	TokenVersion int       `json:"-" gorm:"default:1"`
 	CreatedAt    time.Time `json:"-"`

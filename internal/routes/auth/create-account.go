@@ -84,7 +84,7 @@ func CreateAccount(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 
-		user := &models.User{ID: uuid.NewString(), Role: 0, Password: &hashedPassword, Email: body.Email}
+		user := &models.User{ID: uuid.NewString(), Role: 0, Password: hashedPassword, Email: body.Email}
 		err = db.Create(user).Error
 		if err != nil {
 			return c.Status(500).JSON(&models.APIResponse{

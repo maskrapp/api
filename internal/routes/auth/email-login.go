@@ -54,7 +54,7 @@ func EmailLogin(ctx global.Context) func(*fiber.Ctx) error {
 				Message: "Incorrect login details",
 			})
 		}
-		validPassword := utils.CompareHash(body.Password, *user.Password)
+		validPassword := utils.CompareHash(body.Password, user.Password)
 		if !validPassword {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,

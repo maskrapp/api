@@ -121,10 +121,9 @@ func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
 func createGoogleUser(db *gorm.DB, data *GoogleData) (*models.User, error) {
 	uuid := uuid.New()
 	user := &models.User{
-		ID:       uuid.String(),
-		Role:     0,
-		Password: nil,
-		Email:    data.Email,
+		ID:    uuid.String(),
+		Role:  0,
+		Email: data.Email,
 	}
 	err := db.Create(user).Error
 	if err != nil {
