@@ -76,7 +76,8 @@ func (m *Mailer) SendVerifyMail(email, code string) error {
 			return !resp.IsSuccess()
 		}).
 		SetHeaders(headers).
-		SetResult(responseData).
+		SetSuccessResult(responseData).
+		SetErrorResult(responseData).
 		Post("https://api.zeptomail.eu/v1.1/email/template")
 
 	if err != nil {
@@ -112,7 +113,8 @@ func (m *Mailer) SendUserVerificationMail(email, code string) error {
 			return !resp.IsSuccess()
 		}).
 		SetHeaders(headers).
-		SetResult(responseData).
+		SetSuccessResult(responseData).
+		SetErrorResult(responseData).
 		Post("https://api.zeptomail.eu/v1.1/email/template")
 
 	if err != nil {
@@ -146,7 +148,8 @@ func (m *Mailer) SendPasswordCodeMail(email, code string) error {
 			return !resp.IsSuccess()
 		}).
 		SetHeaders(headers).
-		SetResult(responseData).
+		SetSuccessResult(responseData).
+		SetErrorResult(responseData).
 		Post("https://api.zeptomail.eu/v1.1/email/template")
 
 	if err != nil {

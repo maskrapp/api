@@ -42,7 +42,8 @@ func (r *Recaptcha) ValidateCaptchaToken(token, action string) bool {
 			return !resp.IsSuccess()
 		}).
 		SetHeaders(headers).
-		SetResult(responseBody).
+		SetSuccessResult(responseBody).
+		SetErrorResult(responseBody).
 		Post(url)
 
 	if err != nil {
