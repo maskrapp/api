@@ -1,8 +1,9 @@
-package auth
+package token
 
 import (
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/go-redis/redis/v9"
 	"github.com/gofiber/fiber/v2"
@@ -12,8 +13,10 @@ import (
 	"gorm.io/gorm"
 )
 
-// TODO: harden this
-func RefreshToken(ctx global.Context) func(*fiber.Ctx) error {
+// Refresh is used for refreshing access token, this is done by providing the refresh token.
+// This endpoint is accessible at: POST /token/refresh
+func Refresh(ctx global.Context) func(*fiber.Ctx) error {
+	//TODO: needs hardening
 	return func(c *fiber.Ctx) error {
 		body := make(map[string]string)
 		err := json.Unmarshal(c.Body(), &body)
@@ -73,5 +76,48 @@ func RefreshToken(ctx global.Context) func(*fiber.Ctx) error {
 			})
 		}
 		return c.JSON(jwt)
+	}
+}
+
+// Revoke is used for revoking a refresh token, the token is temporarily stored in a redis db.
+// This endpoint is accessible at: POST /token/revoke
+func Revoke(ctx global.Context) func(*fiber.Ctx) error {
+	return func(c *fiber.Ctx) error {
+		var body struct {
+			Token string `json:"refresh_token"`
+		}
+		err := json.Unmarshal(c.Body(), &body)
+		if err != nil {
+			return c.SendStatus(401)
+		}
+		claims, err := ctx.Instances().JWT.Validate(body.Token, true)
+		if err != nil {
+			return c.Status(400).JSON(&models.APIResponse{
+				Success: false,
+				Message: "Invalid token",
+			})
+		}
+		key := fmt.Sprintf("rt-blacklist:%v", body.Token)
+		cmd := ctx.Instances().Redis.Get(c.Context(), key)
+		err = cmd.Err()
+		if err != nil {
+			if err != redis.Nil {
+				logrus.Error("redis err(revoke-token): ", err)
+				return c.Status(500).JSON(&models.APIResponse{
+					Success: false,
+					Message: "Something went wrong",
+				})
+			} else {
+				expiresAt := time.Unix(claims.ExpiresAt, 0)
+				res := ctx.Instances().Redis.Set(c.Context(), key, 1, expiresAt.Sub(time.Now()))
+				err = res.Err()
+				if err != nil {
+					logrus.Error("redis err(revoke-token2): ", err)
+				}
+			}
+		}
+		return c.Status(200).JSON(&models.APIResponse{
+			Success: true,
+		})
 	}
 }
