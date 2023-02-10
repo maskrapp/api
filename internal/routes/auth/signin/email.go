@@ -1,28 +1,28 @@
-package auth
+package signin
 
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/maskrapp/api/internal/global"
 	"github.com/maskrapp/api/internal/models"
 	"github.com/maskrapp/api/internal/utils"
+	"github.com/sirupsen/logrus"
 )
 
-type emailLoginBody struct {
-	Email        string `json:"email"`
-	Password     string `json:"password"`
-	CaptchaToken string `json:"captcha_token"`
-}
-
-// TODO: harden this
-func EmailLogin(ctx global.Context) func(*fiber.Ctx) error {
+// Email is used for authenticating users with the `email` provider.
+// This endpoint is accessible at: POST /auth/signin/email
+func Email(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 
-		body := &emailLoginBody{}
-		err := c.BodyParser(body)
+		var body struct {
+			Email        string `json:"email"`
+			Password     string `json:"password"`
+			CaptchaToken string `json:"captcha_token"`
+		}
+
+		err := c.BodyParser(&body)
 		if err != nil {
-			return c.Status(500).JSON(&models.APIResponse{
+			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
-				Message: "Something went wrong",
 			})
 		}
 
@@ -43,19 +43,20 @@ func EmailLogin(ctx global.Context) func(*fiber.Ctx) error {
 
 		err = db.Raw("select users.* from providers inner join users on providers.user_id = users.id where provider_name = 'email' and users.email = ?", body.Email).Limit(1).Scan(user).Error
 		if err != nil {
+			logrus.Errorf("db error %v", err)
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
-				Message: "Incorrect login details",
 			})
 		}
+		// Check if record exists
 		if user.ID == "" {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Incorrect login details",
 			})
 		}
-		validPassword := utils.CompareHash(body.Password, user.Password)
-		if !validPassword {
+		// Check if password is correct
+		if !utils.CompareHash(body.Password, user.Password) {
 			return c.Status(400).JSON(&models.APIResponse{
 				Success: false,
 				Message: "Incorrect login details",

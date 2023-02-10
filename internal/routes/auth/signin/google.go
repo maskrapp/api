@@ -1,4 +1,4 @@
-package auth
+package signin
 
 import (
 	"context"
@@ -18,14 +18,15 @@ import (
 	"gorm.io/gorm"
 )
 
-func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
+// Google is used for authenticating users with the `google` provider.
+// This endpoint is accessible at: POST /auth/signin/google
+func Google(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
-		type body struct {
+		var body struct {
 			Code string `json:"code"`
 		}
 
-		values := &body{}
-		err := c.BodyParser(&values)
+		err := c.BodyParser(&body)
 		if err != nil {
 			return c.Status(fiber.ErrBadRequest.Code).JSON(
 				&models.APIResponse{
@@ -34,7 +35,7 @@ func GoogleHandler(ctx global.Context) func(*fiber.Ctx) error {
 				},
 			)
 		}
-		data, err := extractGoogleData(values.Code)
+		data, err := extractGoogleData(body.Code)
 		if err != nil {
 			logrus.Error(err)
 			return c.Status(fiber.StatusInternalServerError).JSON(

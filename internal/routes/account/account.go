@@ -1,4 +1,4 @@
-package user
+package account
 
 import (
 	"github.com/gofiber/fiber/v2"
@@ -6,7 +6,9 @@ import (
 	"github.com/maskrapp/api/internal/models"
 )
 
-func AccountDetails(ctx global.Context) func(*fiber.Ctx) error {
+// Get responds with the account details of the user
+// This endpoint is accessible at GET /account
+func Get(ctx global.Context) func(*fiber.Ctx) error {
 	return func(c *fiber.Ctx) error {
 		user := &models.User{}
 		userId := c.Locals("user_id").(string)
@@ -17,10 +19,8 @@ func AccountDetails(ctx global.Context) func(*fiber.Ctx) error {
 				Message: "Something went wrong",
 			})
 		}
-
 		details := make(map[string]interface{})
 		details["email"] = user.Email
-
 		return c.JSON(details)
 	}
 }

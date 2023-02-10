@@ -7,9 +7,13 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/maskrapp/api/internal/global"
 	"github.com/maskrapp/api/internal/middleware"
-	apiauth "github.com/maskrapp/api/internal/routes/api/auth"
-	"github.com/maskrapp/api/internal/routes/api/user"
+	"github.com/maskrapp/api/internal/routes/account"
 	"github.com/maskrapp/api/internal/routes/auth"
+	"github.com/maskrapp/api/internal/routes/auth/signin"
+	"github.com/maskrapp/api/internal/routes/domains"
+	"github.com/maskrapp/api/internal/routes/emails"
+	"github.com/maskrapp/api/internal/routes/masks"
+	"github.com/maskrapp/api/internal/routes/token"
 )
 
 func Setup(ctx global.Context, app *fiber.App) {
@@ -23,39 +27,47 @@ func Setup(ctx global.Context, app *fiber.App) {
 		return c.JSON(c.GetReqHeaders())
 	})
 
-	authGroup := app.Group("/auth")
-	authGroup.Post("/google", auth.GoogleHandler(ctx))
-	authGroup.Post("create-account-code", middleware.EmailRateLimit(ctx, 3, time.Minute, auth.CreateAccountCode(ctx)))
-	authGroup.Post("verify-account-code", middleware.EmailRateLimit(ctx, 5, time.Minute, auth.VerifyAccountCode(ctx)))
-	authGroup.Post("resend-account-code", middleware.EmailRateLimit(ctx, 3, time.Minute, auth.ResendAccountCode(ctx)))
-	authGroup.Post("create-account", middleware.EmailRateLimit(ctx, 5, time.Minute, auth.CreateAccount(ctx)))
-	authGroup.Post("email-login", middleware.EmailRateLimit(ctx, 7, time.Minute, auth.EmailLogin(ctx)))
+	signupGroup := app.Group("/auth/signup")
 
-	authGroup.Post("create-password-code", middleware.EmailRateLimit(ctx, 5, 5*time.Minute, auth.CreatePasswordCode(ctx)))
-	authGroup.Post("verify-password-code", middleware.EmailRateLimit(ctx, 5, 5*time.Minute, auth.VerifyPasswordCode(ctx)))
-	authGroup.Post("change-password", auth.ChangePassword(ctx))
+	signupGroup.Post("/", middleware.EmailRateLimit(ctx, 3, time.Minute, auth.Signup(ctx)))
+	signupGroup.Post("/verify", middleware.EmailRateLimit(ctx, 3, time.Minute, auth.VerifySignup(ctx)))
+	signupGroup.Post("/resend", middleware.EmailRateLimit(ctx, 3, time.Minute, auth.ResendCode(ctx)))
+	signupGroup.Post("/create", middleware.EmailRateLimit(ctx, 5, time.Minute, auth.Create(ctx)))
 
-	apiGroup := app.Group("/api")
+	signinGroup := app.Group("/auth/signin")
+	signinGroup.Post("/google", signin.Google(ctx))
+	signinGroup.Post("/email", middleware.EmailRateLimit(ctx, 7, time.Minute, signin.Email(ctx)))
 
-	apiUserGroup := apiGroup.Group("/user")
-	apiUserGroup.Use(middleware.AuthMiddleware(ctx))
+	resetPasswordGroup := app.Group("/auth/reset-password")
+	resetPasswordGroup.Post("/", middleware.EmailRateLimit(ctx, 5, 5*time.Minute, auth.Reset(ctx)))
+	resetPasswordGroup.Post("/verify", middleware.EmailRateLimit(ctx, 5, 5*time.Minute, auth.VerifyPassword(ctx)))
+	resetPasswordGroup.Post("/confirm", auth.Confirm(ctx))
 
-	apiUserGroup.Get("/account-details", middleware.UserRateLimit(ctx, 30, time.Minute, user.AccountDetails(ctx)))
+	emailsGroup := app.Group("/emails")
+	emailsGroup.Use(middleware.AuthMiddleware(ctx))
+	emailsGroup.Get("/", middleware.UserRateLimit(ctx, 30, time.Minute, emails.Get(ctx)))
+	emailsGroup.Post("/new", middleware.UserRateLimit(ctx, 5, time.Minute, emails.Add(ctx)))
+	emailsGroup.Delete("/:email", middleware.UserRateLimit(ctx, 15, time.Minute, emails.Delete(ctx)))
+	emailsGroup.Post("/:email/verify", middleware.UserRateLimit(ctx, 15, time.Minute, emails.Verify(ctx)))
+	emailsGroup.Post("/:email/create-code", middleware.UserRateLimit(ctx, 5, time.Minute, emails.RequestCode(ctx)))
 
-	apiUserGroup.Post("/emails", middleware.UserRateLimit(ctx, 30, time.Minute, user.Emails(ctx)))
-	apiUserGroup.Post("/add-email", middleware.UserRateLimit(ctx, 5, time.Minute, user.AddEmail(ctx)))
-	apiUserGroup.Delete("/delete-email", middleware.UserRateLimit(ctx, 15, time.Minute, user.DeleteEmail(ctx)))
+	masksGroup := app.Group("/masks")
+	masksGroup.Use(middleware.AuthMiddleware(ctx))
+	masksGroup.Get("/", middleware.UserRateLimit(ctx, 30, time.Minute, masks.Get(ctx)))
+	masksGroup.Post("/new", middleware.UserRateLimit(ctx, 5, time.Minute, masks.Add(ctx)))
+	masksGroup.Delete("/:mask", middleware.UserRateLimit(ctx, 15, time.Minute, masks.Delete(ctx)))
+	masksGroup.Put("/:mask/status", middleware.UserRateLimit(ctx, 15, time.Minute, masks.Status(ctx)))
 
-	apiUserGroup.Post("/masks", middleware.UserRateLimit(ctx, 30, time.Minute, user.Masks(ctx)))
-	apiUserGroup.Post("add-mask", middleware.UserRateLimit(ctx, 5, time.Minute, user.AddMask(ctx)))
-	apiUserGroup.Delete("delete-mask", middleware.UserRateLimit(ctx, 15, time.Minute, user.DeleteMask(ctx)))
-	apiUserGroup.Put("set-mask-status", middleware.UserRateLimit(ctx, 15, time.Minute, user.SetMaskStatus(ctx)))
+	domainsGroup := app.Group("/domains")
+	domainsGroup.Use(middleware.AuthMiddleware(ctx))
+	domainsGroup.Get("/", middleware.UserRateLimit(ctx, 30, time.Minute, domains.Get(ctx)))
 
-	apiUserGroup.Post("/request-code", middleware.UserRateLimit(ctx, 5, time.Minute, user.RequestCode(ctx)))
-	apiUserGroup.Post("/verify-email", middleware.UserRateLimit(ctx, 15, time.Minute, user.VerifyEmail(ctx)))
-	apiUserGroup.Get("/domains", middleware.UserRateLimit(ctx, 30, time.Minute, user.Domains(ctx)))
+	accountGroup := app.Group("/account")
+	accountGroup.Use(middleware.AuthMiddleware(ctx))
+	accountGroup.Get("/", account.Get(ctx))
 
-	apiAuthGroup := apiGroup.Group("/auth")
-	apiAuthGroup.Post("/refresh", apiauth.RefreshToken(ctx))
-	apiAuthGroup.Post("/revoke-token", apiauth.RevokeToken(ctx))
+	tokenGroup := app.Group("/token")
+	tokenGroup.Post("/refresh", token.Refresh(ctx))
+	tokenGroup.Post("/revoke", token.Revoke(ctx))
+
 }
