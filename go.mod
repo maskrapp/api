@@ -12,13 +12,11 @@ require (
 	golang.org/x/crypto v0.5.0
 	golang.org/x/oauth2 v0.4.0
 	google.golang.org/protobuf v1.28.1
-	gorm.io/driver/postgres v1.4.6
+	gorm.io/driver/postgres v1.4.7
 	gorm.io/gorm v1.24.5
 )
 
 require (
-	cloud.google.com/go/compute v1.12.1 // indirect
-	cloud.google.com/go/compute/metadata v0.2.1 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
@@ -68,5 +66,5 @@ require (
 	github.com/valyala/fasthttp v1.44.0 // indirect
 	github.com/valyala/tcplisten v1.0.0 // indirect
 	golang.org/x/sys v0.4.0 // indirect
-	google.golang.org/grpc v1.53.0-dev
+	google.golang.org/grpc v1.52.0-dev
 )
