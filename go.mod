@@ -9,7 +9,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.1
-	golang.org/x/crypto v0.5.0
+	golang.org/x/crypto v0.6.0
 	golang.org/x/oauth2 v0.5.0
 	google.golang.org/protobuf v1.28.1
 	gorm.io/driver/postgres v1.4.6
