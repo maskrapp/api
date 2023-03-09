@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/go-redis/redis/v9 v9.0.0-rc.2
 	github.com/gofiber/fiber/v2 v2.42.0
-	github.com/golang/protobuf v1.5.2
+	github.com/golang/protobuf v1.5.3
 	github.com/google/uuid v1.3.0
 	github.com/joho/godotenv v1.5.1
 	github.com/stretchr/testify v1.8.2
