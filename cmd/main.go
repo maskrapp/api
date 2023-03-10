@@ -33,7 +33,6 @@ import (
 )
 
 func main() {
-
 	cfg := config.New()
 
 	level, err := logrus.ParseLevel(cfg.Logger.LogLevel)
@@ -60,6 +59,9 @@ func main() {
 		logrus.Panic(err)
 	}
 
+	domainService := domains.New(db, time.Minute*2)
+	domainService.Start()
+
 	instances := &global.Instances{
 		Gorm:        db,
 		Redis:       redis,
@@ -67,10 +69,11 @@ func main() {
 		Recaptcha:   recaptcha.New(cfg.Recaptcha.Secret),
 		JWT:         jwt.New(cfg.JWT.Secret, 5*time.Minute, 24*time.Hour),
 		Mailer:      mailer.New(cfg),
-		Domains:     domains.New(db, 10*time.Minute),
+		Domains:     domainService,
 	}
 
 	gCtx, cancel := global.WithCancel(global.NewContext(context.Background(), instances, cfg))
+
 	defer cancel()
 
 	err = instances.Gorm.AutoMigrate(&models.User{}, models.Email{}, models.EmailVerification{}, models.Mask{}, models.Provider{}, models.AccountVerification{}, models.Domain{}, models.PasswordResetVerification{})
