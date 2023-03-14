@@ -17,7 +17,10 @@ import (
 )
 
 func Setup(ctx global.Context, app *fiber.App) {
-	app.Use(cors.New())
+	config := cors.ConfigDefault
+	config.MaxAge = int((time.Minute * 5).Seconds())
+
+	app.Use(cors.New(config))
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("healthy")
@@ -69,5 +72,4 @@ func Setup(ctx global.Context, app *fiber.App) {
 	tokenGroup := app.Group("/token")
 	tokenGroup.Post("/refresh", token.Refresh(ctx))
 	tokenGroup.Post("/revoke", token.Revoke(ctx))
-
 }
