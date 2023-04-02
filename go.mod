@@ -60,7 +60,7 @@ require (
 require (
 	github.com/andybalholm/brotli v1.0.5 // indirect
 	github.com/golang-jwt/jwt v3.2.2+incompatible
-	github.com/imroc/req/v3 v3.33.1
+	github.com/imroc/req/v3 v3.33.2
 	github.com/klauspost/compress v1.16.3 // indirect
 	github.com/sirupsen/logrus v1.9.0
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
